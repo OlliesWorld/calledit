@@ -1,0 +1,447 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string
+          user_id: string // Clerk user ID (TEXT, not UUID)
+          avatar_url: string | null
+          bio: string | null
+          company: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          full_name: string | null
+          job_title: string | null
+          location: string | null
+          phone: string | null
+          updated_at: string | null
+          username: string | null
+          website: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string // Clerk user ID (TEXT, not UUID)
+          avatar_url?: string | null
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string | null
+          job_title?: string | null
+          location?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          username?: string | null
+          website?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string // Clerk user ID (TEXT, not UUID)
+          avatar_url?: string | null
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string | null
+          job_title?: string | null
+          location?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          username?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          id: string
+          user_id: string // Clerk user ID (TEXT, not UUID)
+          theme: string | null
+          language: string | null
+          timezone: string | null
+          dashboard_layout: string | null
+          sidebar_collapsed: boolean | null
+          data_export_format: string | null
+          auto_save: boolean | null
+          email_notifications: boolean | null
+          push_notifications: boolean | null
+          marketing_emails: boolean | null
+          preferred_currency: string | null
+          date_format: string | null
+          time_format: string | null
+          week_start_day: number | null
+          custom_settings: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string // Clerk user ID (TEXT, not UUID)
+          theme?: string | null
+          language?: string | null
+          timezone?: string | null
+          dashboard_layout?: string | null
+          sidebar_collapsed?: boolean | null
+          data_export_format?: string | null
+          auto_save?: boolean | null
+          email_notifications?: boolean | null
+          push_notifications?: boolean | null
+          marketing_emails?: boolean | null
+          preferred_currency?: string | null
+          date_format?: string | null
+          time_format?: string | null
+          week_start_day?: number | null
+          custom_settings?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string // Clerk user ID (TEXT, not UUID)
+          theme?: string | null
+          language?: string | null
+          timezone?: string | null
+          dashboard_layout?: string | null
+          sidebar_collapsed?: boolean | null
+          data_export_format?: string | null
+          auto_save?: boolean | null
+          email_notifications?: boolean | null
+          push_notifications?: boolean | null
+          marketing_emails?: boolean | null
+          preferred_currency?: string | null
+          date_format?: string | null
+          time_format?: string | null
+          week_start_day?: number | null
+          custom_settings?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      weeks: {
+        Row: {
+          id: string
+          week_number: number
+          title: string
+          starts_at: string
+          locks_at: string
+          scored_at: string | null
+          status: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          week_number: number
+          title: string
+          starts_at: string
+          locks_at: string
+          scored_at?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          week_number?: number
+          title?: string
+          starts_at?: string
+          locks_at?: string
+          scored_at?: string | null
+          status?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          id: string
+          week_id: string
+          question_text: string
+          flavor_text: string | null
+          question_type: string
+          correct_answer: boolean | null
+          tiebreaker_answer: number | null
+          display_order: number
+          player_name: string | null
+          game_id: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          week_id: string
+          question_text: string
+          flavor_text?: string | null
+          question_type?: string
+          correct_answer?: boolean | null
+          tiebreaker_answer?: number | null
+          display_order?: number
+          player_name?: string | null
+          game_id?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          week_id?: string
+          question_text?: string
+          flavor_text?: string | null
+          question_type?: string
+          correct_answer?: boolean | null
+          tiebreaker_answer?: number | null
+          display_order?: number
+          player_name?: string | null
+          game_id?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_week_id_fkey"
+            columns: ["week_id"]
+            referencedRelation: "weeks"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      picks: {
+        Row: {
+          id: string
+          user_id: string
+          question_id: string
+          week_id: string
+          answer: boolean | null
+          tiebreaker_guess: number | null
+          is_correct: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          question_id: string
+          week_id: string
+          answer?: boolean | null
+          tiebreaker_guess?: number | null
+          is_correct?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          question_id?: string
+          week_id?: string
+          answer?: boolean | null
+          tiebreaker_guess?: number | null
+          is_correct?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "picks_question_id_fkey"
+            columns: ["question_id"]
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "picks_week_id_fkey"
+            columns: ["week_id"]
+            referencedRelation: "weeks"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      user_subscriptions: {
+        Row: {
+          id: string
+          user_id: string // Clerk user ID (TEXT, not UUID)
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          status: string
+          price_id: string
+          current_period_start: string | null
+          current_period_end: string | null
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string // Clerk user ID (TEXT, not UUID)
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          status: string
+          price_id: string
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string // Clerk user ID (TEXT, not UUID)
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          status?: string
+          price_id?: string
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
