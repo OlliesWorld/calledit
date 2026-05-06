@@ -18,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // tiebreakerAnswer: number
 
   // Update correct_answer on each pick question and bulk-update picks.is_correct
-  for (const [questionId, correctAnswer] of Object.entries(answers)) {
+  for (const [questionId, correctAnswer] of Object.entries(answers as Record<string, boolean>)) {
     await supabase
       .from('questions')
       .update({ correct_answer: correctAnswer })
