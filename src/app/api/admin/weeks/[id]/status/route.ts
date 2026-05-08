@@ -28,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: `Cannot transition from ${week.status} to ${status}` }, { status: 400 })
   }
 
-  const update: Record<string, unknown> = { status }
+  const update: { status: string; scored_at?: string } = { status }
   if (status === 'scored') update.scored_at = new Date().toISOString()
 
   const { data, error } = await supabase.from('weeks').update(update).eq('id', id).select().single()
