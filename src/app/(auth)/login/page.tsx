@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export default function LoginPage() {
   return (
-    <Card className="w-full max-w-md border-stone-200 shadow-xl shadow-stone-200/50 rounded-3xl overflow-hidden">
+    <Card className="w-full max-w-md bg-white border-stone-200 shadow-xl shadow-stone-200/50 rounded-3xl overflow-hidden">
       <CardHeader className="text-center space-y-2 pt-8 pb-4">
         <CardTitle className="text-2xl font-bold text-stone-900">Welcome back</CardTitle>
         <CardDescription className="text-stone-500 text-base">
