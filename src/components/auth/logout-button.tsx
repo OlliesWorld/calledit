@@ -28,7 +28,7 @@ export function LogoutButton() {
     <Button
       size="sm"
       variant="outline"
-      className="rounded-full border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-50 px-6 shadow-sm hover:shadow-md transition-all duration-300"
+      className="rounded-full border-white/10 text-white/50 hover:text-white hover:bg-white/5 px-6 transition-colors"
       onClick={handleLogout}
       disabled={loading}
     >

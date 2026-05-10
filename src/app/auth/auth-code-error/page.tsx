@@ -1,44 +1,26 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import Link from 'next/link'
 import { AlertCircle } from 'lucide-react'
 
 export default function AuthCodeErrorPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center text-red-600 dark:text-red-400 mx-auto mb-4">
-            <AlertCircle className="w-6 h-6" />
-          </div>
-          <CardTitle className="text-xl font-bold text-red-600 dark:text-red-400">
-            Authentication Error
-          </CardTitle>
-          <CardDescription>
-            There was a problem signing you in. This could be due to:
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
-            <li>• Invalid authentication code</li>
-            <li>• Expired authentication session</li>
-            <li>• Configuration issues</li>
-          </ul>
-
-          <div className="pt-4 space-y-3">
-            <Button asChild className="w-full">
-              <Link href="/login">
-                Try signing in again
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/">
-                Go home
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0b] px-4">
+      <div className="w-full max-w-sm bg-surface2 border border-white/8 rounded-3xl p-8 text-center space-y-4">
+        <div className="w-12 h-12 bg-coral/10 rounded-full flex items-center justify-center text-coral mx-auto">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h1 className="text-xl font-bold text-white">Authentication Error</h1>
+        <p className="text-white/40 text-sm leading-relaxed">
+          Something went wrong signing you in. The link may have expired or already been used.
+        </p>
+        <div className="flex flex-col gap-2 pt-2">
+          <Link href="/login" className="w-full rounded-full bg-orange px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity">
+            Try again
+          </Link>
+          <Link href="/" className="w-full rounded-full border border-white/10 px-6 py-2.5 text-sm font-semibold text-white/50 hover:text-white hover:bg-white/5 transition-colors">
+            Go home
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }

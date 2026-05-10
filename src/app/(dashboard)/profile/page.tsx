@@ -5,10 +5,7 @@ import { ProfileForm } from '@/components/forms/profile-form'
 import { PreferencesForm } from '@/components/forms/preferences-form'
 import { useUser } from '@/hooks/use-user'
 import { ProfileFormData, PreferencesFormData } from '@/types/user'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 
-// Force dynamic rendering - profile requires Clerk auth at runtime
 export const dynamic = 'force-dynamic'
 
 export default function ProfilePage() {
@@ -20,10 +17,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto" />
       </div>
     )
   }
@@ -31,12 +25,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Please sign in to view your profile</CardDescription>
-          </CardHeader>
-        </Card>
+        <p className="text-white/40">Please sign in to view your profile</p>
       </div>
     )
   }
@@ -60,20 +49,17 @@ export default function ProfilePage() {
     setUpdateLoading(true)
     setSuccess('')
     try {
-      // Convert the form data to the format expected by the database
-      const updates = {
+      await updatePreferences({
         timezone: data.timezone,
         dashboard_layout: data.dashboard_layout,
         sidebar_collapsed: data.sidebar_collapsed,
         data_export_format: data.data_export_format,
         auto_save: data.auto_save,
-        session_timeout: data.session_timeout,
         preferred_currency: data.preferred_currency,
         date_format: data.date_format,
         time_format: data.time_format,
         week_start_day: data.week_start_day,
-      }
-      await updatePreferences(updates)
+      })
       setSuccess('Preferences updated successfully!')
       setTimeout(() => setSuccess(''), 3000)
     } catch (error) {
@@ -86,63 +72,60 @@ export default function ProfilePage() {
 
   return (
     <>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Profile Settings
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Manage your account information and preferences
-            </p>
-          </div>
+      <div className="mb-8">
+        <h1 className="font-(family-name:--font-bebas) text-4xl tracking-wide text-white mb-1">
+          Profile Settings
+        </h1>
+        <p className="text-white/40 text-sm">
+          Manage your account information and preferences
+        </p>
+      </div>
 
-          {success && (
-            <div className="mb-6 p-3 text-sm text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-400 rounded-md border border-green-200 dark:border-green-800">
-              {success}
-            </div>
-          )}
+      {success && (
+        <div className="mb-6 p-3 text-sm text-green-400 bg-green-500/10 rounded-xl border border-green-500/20">
+          {success}
+        </div>
+      )}
 
-          {profileLoading && (
-            <div className="mb-6 p-3 text-sm text-blue-600 bg-blue-50 dark:bg-blue-950 dark:text-blue-400 rounded-md border border-blue-200 dark:border-blue-800">
-              Loading profile data...
-            </div>
-          )}
+      {profileLoading && (
+        <div className="mb-6 p-3 text-sm text-white/40 bg-white/5 rounded-xl border border-white/10">
+          Loading profile data...
+        </div>
+      )}
 
-          {/* Tab Navigation */}
-          <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-            <nav className="-mb-px flex space-x-4">
-              <Button
-                variant={activeTab === 'profile' ? 'default' : 'ghost'}
-                onClick={() => setActiveTab('profile')}
-                className="py-2 px-4 text-sm font-medium rounded-lg"
-              >
-                Profile
-              </Button>
-              <Button
-                variant={activeTab === 'preferences' ? 'default' : 'ghost'}
-                onClick={() => setActiveTab('preferences')}
-                className="py-2 px-4 text-sm font-medium rounded-lg"
-              >
-                Preferences
-              </Button>
-            </nav>
-          </div>
+      {/* Tab Navigation */}
+      <div className="border-b border-white/10 mb-6">
+        <nav className="-mb-px flex gap-2">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+              activeTab === 'profile'
+                ? 'bg-orange-500 text-white'
+                : 'text-white/40 hover:text-white/70'
+            }`}
+          >
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveTab('preferences')}
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+              activeTab === 'preferences'
+                ? 'bg-orange-500 text-white'
+                : 'text-white/40 hover:text-white/70'
+            }`}
+          >
+            Preferences
+          </button>
+        </nav>
+      </div>
 
-          {/* Tab Content */}
-          {activeTab === 'profile' && (
-            <ProfileForm
-              profile={profile}
-              onUpdate={handleProfileUpdate}
-              loading={updateLoading}
-            />
-          )}
+      {activeTab === 'profile' && (
+        <ProfileForm profile={profile} onUpdate={handleProfileUpdate} loading={updateLoading} />
+      )}
 
-          {activeTab === 'preferences' && (
-            <PreferencesForm
-              preferences={preferences}
-              onUpdate={handlePreferencesUpdate}
-              loading={updateLoading}
-            />
-          )}
+      {activeTab === 'preferences' && (
+        <PreferencesForm preferences={preferences} onUpdate={handlePreferencesUpdate} loading={updateLoading} />
+      )}
     </>
   )
 }

@@ -1,10 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { UserAvatar, AVATAR_VARIANTS, AvatarVariant } from '@/components/ui/user-avatar'
 import { ProfileFormData, Profile } from '@/types/user'
 import { checkUsernameAvailability } from '@/lib/profile'
 
@@ -14,50 +12,55 @@ interface ProfileFormProps {
   loading?: boolean
 }
 
+const labelClass = 'block text-[11px] uppercase tracking-widest text-white/40 font-mono mb-1.5'
+
+function parseVariant(avatarUrl: string | null | undefined): AvatarVariant {
+  if (avatarUrl?.startsWith('boring:')) return avatarUrl.split(':')[1] as AvatarVariant
+  return 'beam'
+}
+
 export function ProfileForm({ profile, onUpdate, loading = false }: ProfileFormProps) {
   const [formData, setFormData] = useState<ProfileFormData>({
     full_name: '',
     username: '',
     bio: '',
-    website: '',
-    location: '',
-    company: '',
-    job_title: '',
-    date_of_birth: '',
-    phone: '',
+    avatar_url: 'boring:beam',
   })
+  const [selectedVariant, setSelectedVariant] = useState<AvatarVariant>('beam')
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
   const [checkingUsername, setCheckingUsername] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (profile) {
+      const variant = parseVariant(profile.avatar_url)
+      setSelectedVariant(variant)
       setFormData({
         full_name: profile.full_name || '',
         username: profile.username || '',
         bio: profile.bio || '',
-        website: profile.website || '',
-        location: profile.location || '',
-        company: profile.company || '',
-        job_title: profile.job_title || '',
-        date_of_birth: profile.date_of_birth || '',
-        phone: profile.phone || '',
+        avatar_url: `boring:${variant}`,
       })
     }
   }, [profile])
+
+  const seed = formData.username || profile?.user_id || 'default'
+
+  const handleVariantSelect = (variant: AvatarVariant) => {
+    setSelectedVariant(variant)
+    setFormData(prev => ({ ...prev, avatar_url: `boring:${variant}` }))
+  }
 
   const checkUsername = async (username: string) => {
     if (!username || username === profile?.username) {
       setUsernameAvailable(null)
       return
     }
-
     setCheckingUsername(true)
     try {
       const available = await checkUsernameAvailability(username, profile?.user_id)
       setUsernameAvailable(available)
-    } catch (error) {
-      console.error('Error checking username:', error)
+    } catch {
       setUsernameAvailable(null)
     } finally {
       setCheckingUsername(false)
@@ -65,27 +68,19 @@ export function ProfileForm({ profile, onUpdate, loading = false }: ProfileFormP
   }
 
   const handleUsernameChange = (value: string) => {
-    // Remove spaces and convert to lowercase
-    const cleanUsername = value.toLowerCase().replace(/\s+/g, '')
-    setFormData(prev => ({ ...prev, username: cleanUsername }))
-
-    // Debounce username check
-    const timeoutId = setTimeout(() => {
-      checkUsername(cleanUsername)
-    }, 500)
-
-    return () => clearTimeout(timeoutId)
+    const clean = value.toLowerCase().replace(/\s+/g, '')
+    setFormData(prev => ({ ...prev, username: clean }))
+    const id = setTimeout(() => checkUsername(clean), 500)
+    return () => clearTimeout(id)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-
     if (formData.username && usernameAvailable === false) {
       setError('Username is not available')
       return
     }
-
     try {
       await onUpdate(formData)
     } catch (err) {
@@ -94,134 +89,91 @@ export function ProfileForm({ profile, onUpdate, loading = false }: ProfileFormP
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
-        <CardDescription>
-          Update your profile details and personal information
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-400 rounded-md border border-red-200 dark:border-red-800">
-              {error}
-            </div>
-          )}
+    <div className="bg-surface2 border border-white/8 rounded-2xl p-5 space-y-5">
+      <div>
+        <h2 className="text-lg font-bold text-white mb-1">Profile Information</h2>
+        <p className="text-white/40 text-sm">Update your display name, username, and avatar</p>
+      </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name</Label>
-              <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-                placeholder="Your full name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="username">
-                Username
-                {checkingUsername && <span className="text-gray-400 ml-2">Checking...</span>}
-                {usernameAvailable === true && <span className="text-green-600 ml-2">✓ Available</span>}
-                {usernameAvailable === false && <span className="text-red-600 ml-2">✗ Taken</span>}
-              </Label>
-              <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) => handleUsernameChange(e.target.value)}
-                placeholder="your-username"
-              />
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="p-3 text-sm text-coral bg-coral/10 rounded-xl border border-coral/20">
+            {error}
           </div>
+        )}
 
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <textarea
-              id="bio"
-              value={formData.bio}
-              onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-              placeholder="Tell us about yourself..."
-              className="flex min-h-[80px] w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:ring-offset-gray-950 dark:focus-visible:ring-pink-400 resize-none"
+        {/* Avatar picker */}
+        <div>
+          <p className={labelClass}>Avatar Style</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            {AVATAR_VARIANTS.map((variant) => (
+              <button
+                key={variant}
+                type="button"
+                onClick={() => handleVariantSelect(variant)}
+                className={`rounded-full transition-all ${
+                  selectedVariant === variant
+                    ? 'ring-2 ring-orange ring-offset-2 ring-offset-surface2'
+                    : 'opacity-50 hover:opacity-80'
+                }`}
+                title={variant}
+              >
+                <UserAvatar seed={seed} variant={variant} size={40} />
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-white/25 mt-2 font-mono capitalize">{selectedVariant}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="full_name" className={labelClass}>Full Name</label>
+            <Input
+              id="full_name"
+              value={formData.full_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+              placeholder="Roni Lockwood"
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                type="url"
-                value={formData.website}
-                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                placeholder="https://yourwebsite.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="City, Country"
-              />
-            </div>
+          <div>
+            <label htmlFor="username" className={labelClass}>
+              Username
+              {checkingUsername && <span className="text-white/30 ml-2 normal-case">checking…</span>}
+              {usernameAvailable === true && <span className="text-lime ml-2 normal-case">✓ Available</span>}
+              {usernameAvailable === false && <span className="text-coral ml-2 normal-case">✗ Taken</span>}
+            </label>
+            <Input
+              id="username"
+              value={formData.username}
+              onChange={(e) => handleUsernameChange(e.target.value)}
+              placeholder="rtlockwood"
+            />
           </div>
+        </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                placeholder="Your company"
-              />
-            </div>
+        <div>
+          <label htmlFor="bio" className={labelClass}>Bio</label>
+          <textarea
+            id="bio"
+            value={formData.bio}
+            onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+            placeholder="Tell us about yourself…"
+            rows={3}
+            className="w-full rounded-xl border border-white/10 bg-surface3 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange focus:border-orange resize-none"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="job_title">Job Title</Label>
-              <Input
-                id="job_title"
-                value={formData.job_title}
-                onChange={(e) => setFormData(prev => ({ ...prev, job_title: e.target.value }))}
-                placeholder="Your job title"
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="+1 (555) 123-4567"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="date_of_birth">Date of Birth</Label>
-              <Input
-                id="date_of_birth"
-                type="date"
-                value={formData.date_of_birth}
-                onChange={(e) => setFormData(prev => ({ ...prev, date_of_birth: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={loading || checkingUsername || usernameAvailable === false}>
-              {loading ? 'Updating...' : 'Update Profile'}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={loading || checkingUsername || usernameAvailable === false}
+            className="rounded-full bg-orange px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
+          >
+            {loading ? 'Saving…' : 'Update Profile'}
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }

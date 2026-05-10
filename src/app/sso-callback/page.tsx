@@ -17,7 +17,7 @@ export default function SSOCallback() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center text-stone-500">Loading...</div>
+          <div className="text-center text-white/40">Loading...</div>
         </div>
       }
     >
