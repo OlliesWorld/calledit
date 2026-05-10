@@ -1,10 +1,12 @@
-export default function LeaderboardPage() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-      <p className="font-(family-name:--font-bebas) text-3xl text-white/30 tracking-wide">
-        Leaderboard coming soon
-      </p>
-      <p className="text-[13px] text-white/25 mt-2">Check back after the first week is scored</p>
-    </div>
-  )
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table'
+
+export const dynamic = 'force-dynamic'
+
+export default async function LeaderboardPage() {
+  const { userId } = await auth()
+  if (!userId) redirect('/login')
+
+  return <LeaderboardTable currentUserId={userId} />
 }
