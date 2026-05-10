@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export default function SignupPage() {
   return (
-    <Card className="w-full max-w-md bg-surface2 border-white/10 shadow-2xl rounded-3xl overflow-hidden">
+    <Card className="w-full bg-surface2 border-white/10 shadow-2xl rounded-3xl overflow-hidden">
       <CardHeader className="text-center space-y-2 pt-8 pb-4">
         <CardTitle className="text-2xl font-bold text-white">Join the community</CardTitle>
         <CardDescription className="text-white/40 text-base">

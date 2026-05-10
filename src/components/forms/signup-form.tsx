@@ -17,7 +17,8 @@ export function SignupForm() {
           borderRadius: '0.75rem',
         },
         elements: {
-          card: 'shadow-none bg-transparent',
+          card: 'shadow-none bg-transparent w-full',
+          rootBox: 'w-full',
           headerTitle: 'hidden',
           headerSubtitle: 'hidden',
           socialButtonsBlockButton: 'border-white/10 text-white/70 hover:bg-white/5 hover:text-white',
