@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth/admin'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { CloseWeekButton } from '@/components/admin/close-week-button'
 import type { Week } from '@/types/calledit'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -31,12 +32,20 @@ export default async function AdminPage() {
           <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/40">Admin</p>
           <h1 className="font-(family-name:--font-bebas) text-4xl text-white tracking-wide">Weeks</h1>
         </div>
-        <Link
-          href="/admin/weeks/new"
-          className="bg-orange text-black font-(family-name:--font-bebas) text-lg tracking-wide px-4 py-2 rounded-[10px] hover:bg-orange/90 transition-colors"
-        >
-          + New Week
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/members"
+            className="text-[13px] text-white/60 hover:text-white px-3 py-2 rounded-[10px] border border-white/10 hover:bg-white/5 transition-colors"
+          >
+            Members
+          </Link>
+          <Link
+            href="/admin/weeks/new"
+            className="bg-orange text-black font-(family-name:--font-bebas) text-lg tracking-wide px-4 py-2 rounded-[10px] hover:bg-orange/90 transition-colors"
+          >
+            + New Week
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -58,6 +67,7 @@ export default async function AdminPage() {
               <Link href={`/admin/weeks/${week.id}`} className="text-[13px] text-white/50 hover:text-white px-3 py-1.5 rounded-[8px] hover:bg-white/5 transition-colors">
                 Manage
               </Link>
+              {week.status === 'open' && <CloseWeekButton weekId={week.id} />}
               {(week.status === 'locked') && (
                 <Link href={`/admin/weeks/${week.id}/score`} className="text-[13px] text-orange hover:text-orange/80 px-3 py-1.5 rounded-[8px] hover:bg-orange/5 transition-colors">
                   Score

@@ -6,11 +6,14 @@ export async function getActiveWeek(): Promise<WeekWithQuestions | null> {
   const supabase = createAdminClient()
   if (!supabase) return null
 
+  const nowIso = new Date().toISOString()
   const { data: week, error } = await supabase
     .from('weeks')
     .select('*')
     .in('status', ['open', 'upcoming'])
-    .order('starts_at', { ascending: true })
+    .lte('starts_at', nowIso)
+    .gt('locks_at', nowIso)
+    .order('starts_at', { ascending: false })
     .limit(1)
     .single()
 
