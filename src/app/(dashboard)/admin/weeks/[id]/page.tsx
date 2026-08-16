@@ -31,6 +31,10 @@ export default function WeekDetailPage() {
   const [editText, setEditText] = useState('')
   const [editFlavor, setEditFlavor] = useState('')
   const [error, setError] = useState('')
+  const [editingDates, setEditingDates] = useState(false)
+  const [startsAt, setStartsAt] = useState('')
+  const [locksAt, setLocksAt] = useState('')
+  const [savingDates, setSavingDates] = useState(false)
 
   const load = useCallback(async () => {
     const data = await fetch(`/api/admin/weeks/${id}`).then((r) => r.json())
@@ -76,6 +80,30 @@ export default function WeekDetailPage() {
     }
   }
 
+  function toLocalInput(iso: string) {
+    const d = new Date(iso)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
+  async function handleSaveDates() {
+    setSavingDates(true)
+    setError('')
+    const res = await fetch(`/api/admin/weeks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ starts_at: startsAt, locks_at: locksAt }),
+    })
+    if (res.ok) {
+      setEditingDates(false)
+      await load()
+    } else {
+      const data = await res.json()
+      setError(data.error ?? 'Failed to update dates')
+    }
+    setSavingDates(false)
+  }
+
   async function handleSaveEdit(questionId: string) {
     await fetch(`/api/admin/questions/${questionId}`, {
       method: 'PUT',
@@ -96,6 +124,36 @@ export default function WeekDetailPage() {
         <span className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest px-2 py-1 rounded-full bg-white/10 text-white/50 mt-2 inline-block">
           {week.status}
         </span>
+      </div>
+
+      {/* Dates */}
+      <div className="bg-[#1a1a1f] border border-white/[0.08] rounded-[14px] p-4 space-y-2">
+        {editingDates ? (
+          <div className="space-y-2">
+            <label className="block text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/40">
+              Starts At
+              <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)}
+                className="w-full mt-1 bg-[#222228] border border-white/20 rounded-[10px] px-3 py-2 text-sm text-white outline-none" />
+            </label>
+            <label className="block text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/40">
+              Locks At
+              <input type="datetime-local" value={locksAt} onChange={(e) => setLocksAt(e.target.value)}
+                className="w-full mt-1 bg-[#222228] border border-white/20 rounded-[10px] px-3 py-2 text-sm text-white outline-none" />
+            </label>
+            <div className="flex gap-2">
+              <button onClick={handleSaveDates} disabled={savingDates} className="bg-orange text-black text-sm font-medium px-4 py-1.5 rounded-[8px] disabled:opacity-50">
+                {savingDates ? 'Saving...' : 'Save'}
+              </button>
+              <button onClick={() => setEditingDates(false)} className="text-white/40 text-sm px-4 py-1.5">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <button className="text-left w-full" onClick={() => { setEditingDates(true); setStartsAt(toLocalInput(week.starts_at)); setLocksAt(toLocalInput(week.locks_at)) }}>
+            <p className="text-white/60 text-sm">Starts: {new Date(week.starts_at).toLocaleString()}</p>
+            <p className="text-white/60 text-sm">Locks: {new Date(week.locks_at).toLocaleString()}</p>
+            <p className="text-white/30 text-[11px] mt-1">Tap to edit dates</p>
+          </button>
+        )}
       </div>
 
       {/* Generate section — only for upcoming weeks with no questions */}
@@ -134,8 +192,8 @@ export default function WeekDetailPage() {
                 </div>
               ) : (
                 <button className="text-left w-full" onClick={() => { setEditingId(q.id); setEditText(q.question_text); setEditFlavor(q.flavor_text ?? '') }}>
-                  <p className="text-white text-sm leading-snug">{q.question_text}</p>
-                  {q.flavor_text && <p className="text-white/40 text-[12px] italic mt-1">{q.flavor_text}</p>}
+                  <p className="text-white text-base leading-snug font-medium">{q.question_text}</p>
+                  {q.flavor_text && <p className="text-white/60 text-sm italic mt-1.5 leading-snug">{q.flavor_text}</p>}
                 </button>
               )}
             </div>

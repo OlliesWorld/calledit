@@ -14,11 +14,24 @@ export default function NewWeekPage() {
     setError('')
 
     const form = new FormData(e.currentTarget)
+    const weekNumberRaw = String(form.get('week_number') ?? '')
+    const titleRaw = String(form.get('title') ?? '')
+    const startsAtRaw = String(form.get('starts_at') ?? '')
+    const locksAtRaw = String(form.get('locks_at') ?? '')
+
+    const startsAtMs = Date.parse(startsAtRaw)
+    const locksAtMs = Date.parse(locksAtRaw)
+    if (Number.isNaN(startsAtMs) || Number.isNaN(locksAtMs)) {
+      setError('Please enter valid start and lock dates')
+      setPending(false)
+      return
+    }
+
     const body = {
-      week_number: parseInt(form.get('week_number') as string),
-      title: form.get('title') as string,
-      starts_at: new Date(form.get('starts_at') as string).toISOString(),
-      locks_at: new Date(form.get('locks_at') as string).toISOString(),
+      week_number: Number(weekNumberRaw),
+      title: titleRaw,
+      starts_at: new Date(startsAtMs).toISOString(),
+      locks_at: new Date(locksAtMs).toISOString(),
     }
 
     const res = await fetch('/api/admin/weeks', {
@@ -31,8 +44,15 @@ export default function NewWeekPage() {
       const week = await res.json()
       router.push(`/admin/weeks/${week.id}`)
     } else {
-      const data = await res.json()
-      setError(data.error ?? 'Failed to create week')
+      let message = 'Failed to create week'
+      try {
+        const data = await res.json()
+        message = data.error ?? data.message ?? message
+      } catch {
+        const text = await res.text().catch(() => '')
+        if (text) message = `${message}: ${text.slice(0, 200)}`
+      }
+      setError(message)
       setPending(false)
     }
   }

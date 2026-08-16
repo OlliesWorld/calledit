@@ -13,6 +13,7 @@ interface MemberRow {
   avatar_url: string | null
   joined_at: string | null
   last_active_at: string | null
+  weeks_played: number
   total_score: number
 }
 
@@ -102,6 +103,7 @@ async function loadMembers(): Promise<MemberRow[]> {
 
   const profileMap = new Map<string, ProfileRow>()
   const scoreMap = new Map<string, number>()
+  const weeksMap = new Map<string, Set<string>>()
   const lastActiveMap = new Map<string, string>()
 
   if (supabase) {
@@ -114,24 +116,31 @@ async function loadMembers(): Promise<MemberRow[]> {
       .from('weeks')
       .select('id')
       .eq('status', 'scored')
-    const scoredWeekIds = (scoredWeeks ?? []).map((w) => w.id)
+    const scoredWeekIds = new Set((scoredWeeks ?? []).map((w) => w.id))
 
     const pickQuestionIds = new Set<string>()
-    if (scoredWeekIds.length) {
+    if (scoredWeekIds.size) {
       const { data: pickQuestions } = await supabase
         .from('questions')
         .select('id')
-        .in('week_id', scoredWeekIds)
+        .in('week_id', Array.from(scoredWeekIds))
         .eq('question_type', 'pick')
       for (const q of pickQuestions ?? []) pickQuestionIds.add(q.id)
     }
 
     const { data: picks } = await supabase
       .from('picks')
-      .select('user_id, question_id, is_correct, updated_at')
+      .select('user_id, question_id, week_id, is_correct, updated_at')
 
     for (const pick of picks ?? []) {
-      if (pick.is_correct === true && pickQuestionIds.has(pick.question_id)) {
+      if (!weeksMap.has(pick.user_id)) weeksMap.set(pick.user_id, new Set())
+      weeksMap.get(pick.user_id)!.add(pick.week_id)
+
+      if (
+        pick.is_correct === true &&
+        scoredWeekIds.has(pick.week_id) &&
+        pickQuestionIds.has(pick.question_id)
+      ) {
         scoreMap.set(pick.user_id, (scoreMap.get(pick.user_id) ?? 0) + 1)
       }
       const prev = lastActiveMap.get(pick.user_id)
@@ -154,6 +163,7 @@ async function loadMembers(): Promise<MemberRow[]> {
       avatar_url: profile?.avatar_url ?? clerkUser?.imageUrl ?? null,
       joined_at: clerkUser?.createdAt ?? profile?.created_at ?? null,
       last_active_at: lastActiveMap.get(userId) ?? null,
+      weeks_played: weeksMap.get(userId)?.size ?? 0,
       total_score: scoreMap.get(userId) ?? 0,
     })
   }
@@ -220,10 +230,16 @@ export default async function AdminMembersPage() {
               </p>
             </div>
             <div className="text-right shrink-0">
-              <span className="font-(family-name:--font-bebas) text-2xl text-white leading-none">
-                {m.total_score}
-              </span>
-              <p className="text-[10px] font-(family-name:--font-dm-mono) text-white/30 mt-0.5">total</p>
+              <div className="flex items-baseline gap-1 justify-end leading-none">
+                <span className="font-(family-name:--font-bebas) text-xl text-white">{m.weeks_played}</span>
+                <span className="text-[10px] font-(family-name:--font-dm-mono) text-white/40">w</span>
+                <span className="text-white/20 mx-0.5">·</span>
+                <span className="font-(family-name:--font-bebas) text-xl text-white">{m.total_score}</span>
+                <span className="text-[10px] font-(family-name:--font-dm-mono) text-white/40">✓</span>
+              </div>
+              <p className="text-[10px] font-(family-name:--font-dm-mono) text-white/30 mt-1">
+                played · correct
+              </p>
             </div>
           </div>
         ))}
