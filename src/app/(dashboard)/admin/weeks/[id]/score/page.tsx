@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 interface Question {
@@ -19,20 +19,30 @@ export default function ScorePage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  const load = useCallback(async () => {
-    const res = await fetch('/api/weeks/current')
-    const data = await res.json()
-    if (data?.id === id) {
-      setQuestions(data.questions ?? [])
-    } else {
-      // fetch all weeks to find the right one
-      const wr = await fetch('/api/admin/weeks').then((r) => r.json())
-      const week = wr.find((w: { id: string }) => w.id === id)
-      if (week) setQuestions([])
+  // Load the week being scored by id. (This used to go through
+  // /api/weeks/current, which only returns open/upcoming weeks, so a locked
+  // week, the only kind the admin list links here, came back with no questions.)
+  useEffect(() => {
+    let cancelled = false
+
+    fetch(`/api/admin/weeks/${id}`)
+      .then(async (res) => {
+        const data = await res.json().catch(() => null)
+        if (cancelled) return
+        if (!res.ok) {
+          setError(data?.error ?? 'Could not load this week')
+          return
+        }
+        setQuestions(data?.questions ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) setError('Could not load this week')
+      })
+
+    return () => {
+      cancelled = true
     }
   }, [id])
-
-  useEffect(() => { load() }, [load])
 
   const pickQuestions = questions.filter((q) => q.question_type === 'pick')
   const tiebreakerQuestion = questions.find((q) => q.question_type === 'tiebreaker')
