@@ -38,13 +38,28 @@ export default function WeekDetailPage() {
   const [locksAt, setLocksAt] = useState('')
   const [savingDates, setSavingDates] = useState(false)
 
+  const fetchWeek = useCallback(
+    () => fetch(`/api/admin/weeks/${id}`).then((r) => r.json()),
+    [id],
+  )
+
   const load = useCallback(async () => {
-    const data = await fetch(`/api/admin/weeks/${id}`).then((r) => r.json())
+    const data = await fetchWeek()
     setWeek(data)
     setQuestions(data.questions ?? [])
-  }, [id])
+  }, [fetchWeek])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    let cancelled = false
+    fetchWeek().then((data) => {
+      if (cancelled) return
+      setWeek(data)
+      setQuestions(data.questions ?? [])
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [fetchWeek])
 
   async function handleGenerate() {
     if (!week) return
