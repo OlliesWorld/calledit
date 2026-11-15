@@ -69,34 +69,35 @@ export function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#111114] border-t border-white/[0.08]">
-      <div className="max-w-107.5 mx-auto flex">
-        {allTabs.map((tab) => {
-          // The picks tab only matches its exact path (a league's picks URL is a prefix of its leaderboard URL)
-          const isPicksTab = tab.name === 'Picks'
-          const isActive = isPicksTab ? pathname === tab.href : pathname.startsWith(tab.href)
-          return (
-            <Link
-              key={tab.name}
-              href={tab.href}
-              className={cn(
-                'flex-1 flex flex-col items-center gap-1 pt-3 pb-2 text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-colors',
-                isActive ? 'text-orange' : 'text-white/40 hover:text-white/70'
-              )}
-            >
-              {tab.icon(isActive)}
-              {tab.name}
-            </Link>
-          )
-        })}
-      </div>
+      {/* Footer text lives in the nav: beside the tabs on wide screens, under them on phones */}
+      <div className="flex flex-col lg:grid lg:grid-cols-[1fr_minmax(0,26.875rem)_1fr] lg:items-center lg:gap-4 lg:px-5">
+        <div className="order-1 lg:order-2 w-full max-w-107.5 mx-auto flex">
+          {allTabs.map((tab) => {
+            // The picks tab only matches its exact path (a league's picks URL is a prefix of its leaderboard URL)
+            const isPicksTab = tab.name === 'Picks'
+            const isActive = isPicksTab ? pathname === tab.href : pathname.startsWith(tab.href)
+            return (
+              <Link
+                key={tab.name}
+                href={tab.href}
+                className={cn(
+                  'flex-1 flex flex-col items-center gap-1 pt-3 pb-2 text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-colors',
+                  isActive ? 'text-orange' : 'text-white/40 hover:text-white/70'
+                )}
+              >
+                {tab.icon(isActive)}
+                {tab.name}
+              </Link>
+            )
+          })}
+        </div>
 
-      {/* Footer text lives here rather than in a separate page footer */}
-      <div className="max-w-107.5 mx-auto px-4 pb-2 text-center text-[10px] leading-relaxed">
-        <p className="text-white/70">
+        <p className="order-2 lg:order-1 px-4 lg:px-0 text-center lg:text-left text-[10px] leading-relaxed text-white/70">
           {league ? `${LEAGUE_LABELS[league]} pick\u2019em` : siteConfig.tagline}
           {league && LEAGUE_DISCLAIMERS[league] && <> · {LEAGUE_DISCLAIMERS[league]}</>}
         </p>
-        <p className="text-white/50">
+
+        <p className="order-3 px-4 lg:px-0 pb-2 lg:pb-0 text-center lg:text-right text-[10px] leading-relaxed text-white/50">
           © {new Date().getFullYear()} {siteConfig.name} ·{' '}
           <Link href="#" className="hover:text-white transition-colors">Privacy</Link> ·{' '}
           <Link href="#" className="hover:text-white transition-colors">Terms</Link>
