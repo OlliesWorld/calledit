@@ -3,7 +3,14 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { leagueFromPathname, leagueLeaderboardPath, leaguePicksPath } from '@/lib/leagues'
+import { siteConfig } from '@/config/site'
+import {
+  LEAGUE_DISCLAIMERS,
+  LEAGUE_LABELS,
+  leagueFromPathname,
+  leagueLeaderboardPath,
+  leaguePicksPath,
+} from '@/lib/leagues'
 
 const tabs = [
   {
@@ -72,7 +79,7 @@ export function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
               key={tab.name}
               href={tab.href}
               className={cn(
-                'flex-1 flex flex-col items-center gap-1 py-3 text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-colors',
+                'flex-1 flex flex-col items-center gap-1 pt-3 pb-2 text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-colors',
                 isActive ? 'text-orange' : 'text-white/40 hover:text-white/70'
               )}
             >
@@ -81,6 +88,19 @@ export function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
             </Link>
           )
         })}
+      </div>
+
+      {/* Footer text lives here rather than in a separate page footer */}
+      <div className="max-w-107.5 mx-auto px-4 pb-2 text-center text-[10px] leading-relaxed">
+        <p className="text-white/70">
+          {league ? `${LEAGUE_LABELS[league]} pick\u2019em` : siteConfig.tagline}
+          {league && LEAGUE_DISCLAIMERS[league] && <> · {LEAGUE_DISCLAIMERS[league]}</>}
+        </p>
+        <p className="text-white/50">
+          © {new Date().getFullYear()} {siteConfig.name} ·{' '}
+          <Link href="#" className="hover:text-white transition-colors">Privacy</Link> ·{' '}
+          <Link href="#" className="hover:text-white transition-colors">Terms</Link>
+        </p>
       </div>
     </nav>
   )
