@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { LEAGUE_LABELS, isLeague } from '@/lib/leagues'
 
 interface Question {
   id: string
@@ -16,6 +17,7 @@ interface Week {
   title: string
   week_number: number
   status: string
+  league: string
   starts_at: string
   locks_at: string
 }
@@ -119,7 +121,9 @@ export default function WeekDetailPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/40">Admin · Week {week.week_number}</p>
+        <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/40">
+          Admin · {isLeague(week.league) ? LEAGUE_LABELS[week.league] : week.league} · Week {week.week_number}
+        </p>
         <h1 className="font-(family-name:--font-bebas) text-4xl text-white tracking-wide">{week.title}</h1>
         <span className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest px-2 py-1 rounded-full bg-white/10 text-white/50 mt-2 inline-block">
           {week.status}
