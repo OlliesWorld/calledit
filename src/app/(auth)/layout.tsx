@@ -1,4 +1,5 @@
 import { Navbar } from '@/components/layout/navbar'
+import { Footer } from '@/components/layout/footer'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {children}
         </div>
       </div>
+      <Footer league={null} />
     </div>
   )
 }

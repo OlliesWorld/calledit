@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import { isLeague } from '@/lib/leagues'
 import { LeagueTracker } from '@/components/league/league-tracker'
-import { LeagueFooterNote } from '@/components/league/league-footer-note'
 
 export default async function LeagueLayout({
   children,
@@ -17,7 +16,6 @@ export default async function LeagueLayout({
     <>
       <LeagueTracker league={league} />
       {children}
-      <LeagueFooterNote league={league} />
     </>
   )
 }
