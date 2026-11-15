@@ -78,6 +78,7 @@ const LEAGUE_CONTEXT: Record<League, LeaguePromptContext> = {
       // states no rules.
       'Do not state or rely on specific game rules, game length or scoring format. Only ask questions that can be settled from the final score or a standard box score.',
       'If you are not sure a player is on one of these teams, ask a game-outcome question instead of a player prop. Set "player_name" to null for questions that are not about one player.',
+      'Flavor text is hype and opinion only. Do not claim recent results, records, streaks, form or stats for any team or player.',
       'The JSON structure below uses <placeholders>. Replace every one with real values; never output angle brackets.',
     ],
     example: UNRIVALED_EXAMPLE,
