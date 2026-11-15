@@ -16,8 +16,11 @@ export const clerkAppearance: Appearance = {
     rootBox: 'w-full',
     headerTitle: 'hidden',
     headerSubtitle: 'hidden',
-    socialButtonsBlockButton: 'border-white/10 text-white/70 hover:bg-white/5 hover:text-white',
-    socialButtonsBlockButtonText: 'text-white/80',
+    // The ! is needed: Clerk's own button styles otherwise win and leave dark
+    // text on the dark card.
+    socialButtonsBlockButton:
+      '!bg-white/10 !border !border-white/20 !text-white hover:!bg-white/20 focus-visible:!outline-2 focus-visible:!outline-offset-2 focus-visible:!outline-orange',
+    socialButtonsBlockButtonText: '!text-white !font-medium',
     footerActionLink: 'text-orange-400 hover:text-orange-300',
     dividerLine: 'bg-white/10',
     dividerText: 'text-white/30',
