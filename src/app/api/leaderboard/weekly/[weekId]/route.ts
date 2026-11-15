@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { leagueFromSearchParams } from '@/lib/leagues'
 
 function resolveDisplayName(
   profile: { full_name: string | null; username: string | null } | undefined,
@@ -19,20 +20,24 @@ function tiebreakerSortKey(guess: number | null, answer: number | null): number 
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ weekId: string }> },
 ) {
   const supabase = createAdminClient()
   if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
 
+  const league = leagueFromSearchParams(req.nextUrl.searchParams)
+  if (!league) return NextResponse.json({ error: 'Unknown league' }, { status: 400 })
+
   const { weekId } = await params
 
-  // Support "latest" as a special value for the most recently scored week
+  // Support "latest" as a special value for the most recently scored week in this league
   let week: Record<string, unknown> | null = null
   if (weekId === 'latest') {
     const { data } = await supabase
       .from('weeks')
       .select('*')
+      .eq('league', league)
       .eq('status', 'scored')
       .order('scored_at', { ascending: false })
       .limit(1)
@@ -40,13 +45,18 @@ export async function GET(
     week = data
   } else {
     const { data } = await supabase.from('weeks').select('*').eq('id', weekId).single()
+    // A week from another league doesn't exist as far as this league is concerned
+    if (data && data.league !== league) {
+      return NextResponse.json({ error: 'Week not found' }, { status: 404 })
+    }
     week = data
   }
 
-  // Always return the scored weeks list for the week selector
+  // Always return this league's scored weeks list for the week selector
   const { data: scoredWeeks } = await supabase
     .from('weeks')
     .select('id, week_number, title, scored_at')
+    .eq('league', league)
     .eq('status', 'scored')
     .order('week_number', { ascending: false })
 

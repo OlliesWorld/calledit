@@ -20,6 +20,11 @@ export const LEAGUE_DISCLAIMERS: Partial<Record<League, string>> = {
   unrivaled: 'Fan-made. Not affiliated with Unrivaled.',
 }
 
+/** Footer tagline, e.g. "WNBA pick'em. Call it. Prove it." */
+export function leagueTagline(league: League): string {
+  return `${LEAGUE_LABELS[league]} pick'em. Call it. Prove it.`
+}
+
 export function isLeague(value: unknown): value is League {
   return typeof value === 'string' && (LEAGUES as readonly string[]).includes(value)
 }
@@ -46,4 +51,15 @@ export function leagueLeaderboardPath(league: League): string {
 export function leagueFromPathname(pathname: string): League | null {
   const first = pathname.split('/')[1]
   return isLeague(first) ? first : null
+}
+
+/**
+ * Reads `?league=` from an API request. A missing param means the default
+ * league (so pre-league callers keep working); an unknown value returns null
+ * so the route can answer 400.
+ */
+export function leagueFromSearchParams(params: URLSearchParams): League | null {
+  const raw = params.get('league')
+  if (raw === null) return DEFAULT_LEAGUE
+  return isLeague(raw) ? raw : null
 }

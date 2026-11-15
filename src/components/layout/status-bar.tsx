@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { siteConfig } from '@/config/site'
 import { ROUTES } from '@/constants/routes'
 import { UserMenu } from '@/components/ui/user-menu'
+import { LeagueSwitcher } from '@/components/league/league-switcher'
 
 export function StatusBar() {
   return (
@@ -16,7 +17,10 @@ export function StatusBar() {
           {siteConfig.name}
         </Link>
 
-        <UserMenu />
+        <div className="flex items-center gap-3">
+          <LeagueSwitcher />
+          <UserMenu />
+        </div>
       </div>
     </header>
   )

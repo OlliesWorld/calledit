@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { leagueFromPathname, leagueLeaderboardPath, leaguePicksPath } from '@/lib/leagues'
 
 const tabs = [
   {
@@ -36,9 +37,17 @@ const tabs = [
 
 export function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
   const pathname = usePathname()
+  // On a league page, Picks and Board stay inside that league. Elsewhere they
+  // use the legacy URLs, which redirect to the last-used league.
+  const league = leagueFromPathname(pathname)
 
   const allTabs = [
-    ...tabs,
+    ...tabs.map((tab) => {
+      if (!league) return tab
+      if (tab.href === '/dashboard') return { ...tab, href: leaguePicksPath(league) }
+      if (tab.href === '/leaderboard') return { ...tab, href: leagueLeaderboardPath(league) }
+      return tab
+    }),
     ...(isAdmin ? [{
       name: 'Admin',
       href: '/admin',
@@ -55,7 +64,9 @@ export function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
     <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#111114] border-t border-white/[0.08]">
       <div className="max-w-107.5 mx-auto flex">
         {allTabs.map((tab) => {
-          const isActive = pathname.startsWith(tab.href) && (tab.href !== '/dashboard' || pathname === '/dashboard')
+          // The picks tab only matches its exact path (a league's picks URL is a prefix of its leaderboard URL)
+          const isPicksTab = tab.name === 'Picks'
+          const isActive = isPicksTab ? pathname === tab.href : pathname.startsWith(tab.href)
           return (
             <Link
               key={tab.name}

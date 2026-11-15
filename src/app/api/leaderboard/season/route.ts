@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { leagueFromSearchParams } from '@/lib/leagues'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 function resolveDisplayName(
@@ -10,14 +11,18 @@ function resolveDisplayName(
   return `Player ${userId.slice(-4).toUpperCase()}`
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = createAdminClient()
   if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
 
-  // Get all scored weeks
+  const league = leagueFromSearchParams(req.nextUrl.searchParams)
+  if (!league) return NextResponse.json({ error: 'Unknown league' }, { status: 400 })
+
+  // Get all scored weeks for this league
   const { data: scoredWeeks } = await supabase
     .from('weeks')
     .select('id')
+    .eq('league', league)
     .eq('status', 'scored')
 
   if (!scoredWeeks || scoredWeeks.length === 0) {
