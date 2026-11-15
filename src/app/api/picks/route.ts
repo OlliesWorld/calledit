@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { submitPick } from '@/lib/picks/actions'
+import { PickError, submitPick } from '@/lib/picks/actions'
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth()
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[POST /api/picks]', message, err)
-    const status = message === 'Picks are locked' ? 403 : 500
+    const status = err instanceof PickError ? err.status : 500
     return NextResponse.json({ error: message }, { status })
   }
 }

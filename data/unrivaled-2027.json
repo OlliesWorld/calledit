@@ -1,0 +1,53 @@
+{
+  "league": "unrivaled",
+  "season": 2027,
+  "source": "Official Unrivaled schedule (unrivaled.basketball), entered by hand.",
+  "notes": [
+    "homeTeam/awayTeam only record the order teams are listed on the schedule (first-listed team is homeTeam). They do not mean a home court.",
+    "tipoff is an ISO timestamp with offset, or null until the tip time is confirmed.",
+    "venue and city are informational; the app does not read them yet."
+  ],
+  "todo": [
+    "TODO: add tip times for all 2027-01-08 games (unr-2027-001 to unr-2027-004).",
+    "TODO: add the 2027-01-11 games. Known so far: games in Detroit (Little Caesars Arena) and San Francisco (Chase Center). Matchups and tip times not yet provided. Continue IDs from unr-2027-005.",
+    "TODO: add the rest of the 2027 schedule."
+  ],
+  "games": [
+    {
+      "id": "unr-2027-001",
+      "date": "2027-01-08",
+      "homeTeam": "Phantom BC",
+      "awayTeam": "Mist BC",
+      "tipoff": null,
+      "venue": "TD Garden",
+      "city": "Boston"
+    },
+    {
+      "id": "unr-2027-002",
+      "date": "2027-01-08",
+      "homeTeam": "Vinyl BC",
+      "awayTeam": "Breeze BC",
+      "tipoff": null,
+      "venue": "TD Garden",
+      "city": "Boston"
+    },
+    {
+      "id": "unr-2027-003",
+      "date": "2027-01-08",
+      "homeTeam": "Rose BC",
+      "awayTeam": "Lunar Owls BC",
+      "tipoff": null,
+      "venue": "Intuit Dome",
+      "city": "Los Angeles"
+    },
+    {
+      "id": "unr-2027-004",
+      "date": "2027-01-08",
+      "homeTeam": "Hive BC",
+      "awayTeam": "Laces BC",
+      "tipoff": null,
+      "venue": "Intuit Dome",
+      "city": "Los Angeles"
+    }
+  ]
+}

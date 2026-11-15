@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, DM_Sans, DM_Mono } from "next/font/google";
+import { DevBanner } from "@/components/layout/dev-banner";
 import { ClerkProvider } from "@clerk/nextjs";
 import "@/styles/globals.css";
 import { siteConfig } from "@/config/site";
@@ -65,6 +66,7 @@ export default function RootLayout({
       <body
         className={`${bebasNeue.variable} ${dmSans.variable} ${dmMono.variable} antialiased`}
       >
+        <DevBanner />
         {children}
       </body>
     </html>

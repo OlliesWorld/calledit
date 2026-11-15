@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ROUTES } from '@/constants/routes'
+import { LeaguePicker } from '@/components/league/league-picker'
 
 const TICKER_ITEMS = [
   "🔥 A'ja Wilson is absolutely cooking right now",
@@ -88,6 +89,11 @@ export default function Home() {
             >
               Sign in
             </Link>
+          </div>
+
+          {/* League choice */}
+          <div className="animate-fade-up stagger-3">
+            <LeaguePicker />
           </div>
 
         </div>

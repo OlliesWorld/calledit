@@ -1,12 +1,10 @@
-import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { LeaderboardTable } from '@/components/leaderboard/leaderboard-table'
+import { leagueLeaderboardPath } from '@/lib/leagues'
+import { getPreferredLeague } from '@/lib/leagues-server'
 
 export const dynamic = 'force-dynamic'
 
+// Legacy URL. Leaderboards now live at /[league]/leaderboard.
 export default async function LeaderboardPage() {
-  const { userId } = await auth()
-  if (!userId) redirect('/login')
-
-  return <LeaderboardTable currentUserId={userId} />
+  redirect(leagueLeaderboardPath(await getPreferredLeague()))
 }

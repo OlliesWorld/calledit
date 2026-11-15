@@ -1,8 +1,9 @@
 import 'server-only'
 import { createAdminClient } from '@/lib/supabase/admin'
+import type { League } from '@/lib/leagues'
 import type { WeekWithQuestions, Pick } from '@/types/calledit'
 
-export async function getActiveWeek(): Promise<WeekWithQuestions | null> {
+export async function getActiveWeek(league: League): Promise<WeekWithQuestions | null> {
   const supabase = createAdminClient()
   if (!supabase) return null
 
@@ -10,6 +11,7 @@ export async function getActiveWeek(): Promise<WeekWithQuestions | null> {
   const { data: week, error } = await supabase
     .from('weeks')
     .select('*')
+    .eq('league', league)
     .in('status', ['open', 'upcoming'])
     .lte('starts_at', nowIso)
     .gt('locks_at', nowIso)

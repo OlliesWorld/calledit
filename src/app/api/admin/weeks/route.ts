@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/admin'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { DEFAULT_LEAGUE, isLeague } from '@/lib/leagues'
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
     title?: unknown
     starts_at?: unknown
     locks_at?: unknown
+    league?: unknown
   }
 
   try {
@@ -36,6 +38,12 @@ export async function POST(req: NextRequest) {
   const title = typeof body.title === 'string' ? body.title.trim() : ''
   const startsAt = typeof body.starts_at === 'string' ? body.starts_at : ''
   const locksAt = typeof body.locks_at === 'string' ? body.locks_at : ''
+
+  // Omitted league means the default, so pre-league callers keep working
+  const league = body.league === undefined || body.league === null ? DEFAULT_LEAGUE : body.league
+  if (!isLeague(league)) {
+    return NextResponse.json({ error: 'league must be a known league' }, { status: 400 })
+  }
 
   if (!Number.isFinite(weekNumber) || weekNumber <= 0 || !title || !startsAt || !locksAt) {
     return NextResponse.json(
@@ -64,6 +72,7 @@ export async function POST(req: NextRequest) {
       starts_at: new Date(startsMs).toISOString(),
       locks_at: new Date(locksMs).toISOString(),
       status: 'upcoming',
+      league,
     })
     .select()
     .single()
@@ -88,7 +97,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data, { status: 201 })
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await requireAdmin()
   } catch {
@@ -98,10 +107,15 @@ export async function GET() {
   const supabase = createAdminClient()
   if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
 
-  const { data, error } = await supabase
-    .from('weeks')
-    .select('*')
-    .order('week_number', { ascending: false })
+  // Optional ?league= filter; no param returns every league
+  const leagueParam = req.nextUrl.searchParams.get('league')
+  if (leagueParam !== null && !isLeague(leagueParam)) {
+    return NextResponse.json({ error: 'Unknown league' }, { status: 400 })
+  }
+
+  let query = supabase.from('weeks').select('*')
+  if (leagueParam) query = query.eq('league', leagueParam)
+  const { data, error } = await query.order('week_number', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)

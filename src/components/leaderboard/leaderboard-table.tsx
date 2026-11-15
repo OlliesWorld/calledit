@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
+import type { League } from '@/lib/leagues'
 
 interface WeeklyEntry {
   rank: number
@@ -153,7 +154,7 @@ function SeasonRow({ entry, isMe }: { entry: SeasonEntry; isMe: boolean }) {
   )
 }
 
-export function LeaderboardTable({ currentUserId }: { currentUserId: string }) {
+export function LeaderboardTable({ currentUserId, league }: { currentUserId: string; league: League }) {
   const [tab, setTab] = useState<'weekly' | 'season'>('weekly')
   const [weeklyData, setWeeklyData] = useState<WeeklyResponse | null>(null)
   const [seasonEntries, setSeasonEntries] = useState<SeasonEntry[]>([])
@@ -165,7 +166,7 @@ export function LeaderboardTable({ currentUserId }: { currentUserId: string }) {
   const fetchWeekly = useCallback(async (weekId: string) => {
     setLoadingWeekly(true)
     try {
-      const res = await fetch(`/api/leaderboard/weekly/${weekId}`)
+      const res = await fetch(`/api/leaderboard/weekly/${weekId}?league=${league}`)
       if (res.ok) {
         const data: WeeklyResponse = await res.json()
         setWeeklyData(data)
@@ -174,13 +175,13 @@ export function LeaderboardTable({ currentUserId }: { currentUserId: string }) {
     } finally {
       setLoadingWeekly(false)
     }
-  }, [])
+  }, [league])
 
   const fetchSeason = useCallback(async () => {
     if (seasonFetched) return
     setLoadingSeason(true)
     try {
-      const res = await fetch('/api/leaderboard/season')
+      const res = await fetch(`/api/leaderboard/season?league=${league}`)
       if (res.ok) {
         const data: { entries: SeasonEntry[] } = await res.json()
         setSeasonEntries(data.entries)
@@ -189,7 +190,7 @@ export function LeaderboardTable({ currentUserId }: { currentUserId: string }) {
     } finally {
       setLoadingSeason(false)
     }
-  }, [seasonFetched])
+  }, [seasonFetched, league])
 
   useEffect(() => {
     fetchWeekly('latest')

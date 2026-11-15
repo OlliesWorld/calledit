@@ -140,6 +140,7 @@ export type Database = {
           locks_at: string
           scored_at: string | null
           status: string
+          league: string
           created_at: string | null
           updated_at: string | null
         }
@@ -151,6 +152,7 @@ export type Database = {
           locks_at: string
           scored_at?: string | null
           status?: string
+          league?: string
           created_at?: string | null
           updated_at?: string | null
         }
@@ -162,6 +164,7 @@ export type Database = {
           locks_at?: string
           scored_at?: string | null
           status?: string
+          league?: string
           created_at?: string | null
           updated_at?: string | null
         }

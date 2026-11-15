@@ -5,6 +5,9 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_APP_URL || "https://calledit.app",
   ogImage: "/og-image.png",
 
+  // Shown in a strip at the top of every page. Set to null to remove it.
+  devNotice: "In development · Questions use sample data from past games" as string | null,
+
   links: {
     twitter: "https://twitter.com/calleditapp",
   },
