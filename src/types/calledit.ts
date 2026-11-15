@@ -9,6 +9,9 @@ export interface Week {
   locks_at: string
   scored_at: string | null
   status: string
+  // One of LEAGUES in src/lib/leagues.ts. Typed as string to match the DB row;
+  // narrow with isLeague()/toLeague() where it matters.
+  league: string
   created_at: string | null
   updated_at: string | null
 }
