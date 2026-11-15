@@ -1,14 +1,7 @@
 import 'server-only'
+import type { Game, ScheduleSource } from './types'
 
-export interface EspnGame {
-  id: string
-  date: string
-  homeTeam: string
-  awayTeam: string
-  tipoff: string
-}
-
-export async function fetchWnbaSchedule(startDate: string, endDate: string): Promise<EspnGame[]> {
+async function fetchWnbaSchedule(startDate: string, endDate: string): Promise<Game[]> {
   // Format: YYYYMMDD
   const start = startDate.replace(/-/g, '')
   const end = endDate.replace(/-/g, '')
@@ -35,4 +28,9 @@ export async function fetchWnbaSchedule(startDate: string, endDate: string): Pro
       tipoff: event.date as string,
     }
   })
+}
+
+/** WNBA schedule from ESPN's public scoreboard endpoint. */
+export const espnSource: ScheduleSource = {
+  getGames: fetchWnbaSchedule,
 }
