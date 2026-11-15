@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { UserAvatar, AVATAR_VARIANTS, AvatarVariant } from '@/components/ui/user-avatar'
 import { ProfileFormData, Profile } from '@/types/user'
@@ -31,18 +31,21 @@ export function ProfileForm({ profile, onUpdate, loading = false }: ProfileFormP
   const [checkingUsername, setCheckingUsername] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (profile) {
-      const variant = parseVariant(profile.avatar_url)
-      setSelectedVariant(variant)
-      setFormData({
-        full_name: profile.full_name || '',
-        username: profile.username || '',
-        bio: profile.bio || '',
-        avatar_url: `boring:${variant}`,
-      })
-    }
-  }, [profile])
+  // Reset the form whenever a new profile object arrives (first load, or after
+  // a save). Done during render rather than in an effect, so there is no extra
+  // render with stale values.
+  const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null)
+  if (profile && profile !== syncedProfile) {
+    const variant = parseVariant(profile.avatar_url)
+    setSyncedProfile(profile)
+    setSelectedVariant(variant)
+    setFormData({
+      full_name: profile.full_name || '',
+      username: profile.username || '',
+      bio: profile.bio || '',
+      avatar_url: `boring:${variant}`,
+    })
+  }
 
   const seed = formData.username || profile?.user_id || 'default'
 

@@ -163,19 +163,21 @@ export function LeaderboardTable({ currentUserId, league }: { currentUserId: str
   const [loadingSeason, setLoadingSeason] = useState(false)
   const [seasonFetched, setSeasonFetched] = useState(false)
 
+  // Network only, no state: safe to call from an effect
+  const requestWeekly = useCallback(async (weekId: string): Promise<WeeklyResponse | null> => {
+    const res = await fetch(`/api/leaderboard/weekly/${weekId}?league=${league}`)
+    return res.ok ? res.json() : null
+  }, [league])
+
   const fetchWeekly = useCallback(async (weekId: string) => {
     setLoadingWeekly(true)
     try {
-      const res = await fetch(`/api/leaderboard/weekly/${weekId}?league=${league}`)
-      if (res.ok) {
-        const data: WeeklyResponse = await res.json()
-        setWeeklyData(data)
-        if (weekId === 'latest' && data.week) setSelectedWeekId(data.week.id)
-      }
+      const data = await requestWeekly(weekId)
+      if (data) setWeeklyData(data)
     } finally {
       setLoadingWeekly(false)
     }
-  }, [league])
+  }, [requestWeekly])
 
   const fetchSeason = useCallback(async () => {
     if (seasonFetched) return
@@ -192,13 +194,30 @@ export function LeaderboardTable({ currentUserId, league }: { currentUserId: str
     }
   }, [seasonFetched, league])
 
+  // Initial load: the latest scored week. loadingWeekly starts true, so the
+  // effect only has to clear it once the response is in.
   useEffect(() => {
-    fetchWeekly('latest')
-  }, [fetchWeekly])
+    let cancelled = false
+    requestWeekly('latest')
+      .then((data) => {
+        if (cancelled || !data) return
+        setWeeklyData(data)
+        if (data.week) setSelectedWeekId(data.week.id)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoadingWeekly(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [requestWeekly])
 
-  useEffect(() => {
-    if (tab === 'season') fetchSeason()
-  }, [tab, fetchSeason])
+  function handleTabChange(next: 'weekly' | 'season') {
+    setTab(next)
+    // Season standings load the first time the tab is opened
+    if (next === 'season') fetchSeason()
+  }
 
   function handleWeekChange(weekId: string) {
     setSelectedWeekId(weekId)
@@ -225,7 +244,7 @@ export function LeaderboardTable({ currentUserId, league }: { currentUserId: str
         {(['weekly', 'season'] as const).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => handleTabChange(t)}
             className={cn(
               'flex-1 py-2 rounded-[8px] text-[11px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-all',
               tab === t

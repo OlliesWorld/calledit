@@ -2,7 +2,7 @@
 
 import { useUser as useClerkUser, useClerk } from '@clerk/nextjs'
 import { ExtendedUser, Profile, UserPreferences, ProfileUpdate, UserPreferencesUpdate } from '@/types/user'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getProfile, getUserPreferences, updateProfile, updateUserPreferences } from '@/lib/profile/client'
 
@@ -16,30 +16,7 @@ export function useUser() {
   const [profileLoading, setProfileLoading] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    if (!isLoaded) return
-
-    if (clerkUser) {
-      // Map Clerk user to ExtendedUser format
-      const mappedUser: ExtendedUser = {
-        id: clerkUser.id,
-        email: clerkUser.emailAddresses[0]?.emailAddress || '',
-        firstName: clerkUser.firstName,
-        lastName: clerkUser.lastName,
-        imageUrl: clerkUser.imageUrl,
-        created_at: clerkUser.createdAt?.toISOString() || new Date().toISOString(),
-      }
-      setUser(mappedUser)
-      loadUserData(clerkUser.id)
-    } else {
-      setUser(null)
-      setProfile(null)
-      setPreferences(null)
-    }
-    setLoading(false)
-  }, [clerkUser, isLoaded])
-
-  const loadUserData = async (userId: string) => {
+  const loadUserData = useCallback(async (userId: string) => {
     setProfileLoading(true)
     try {
       const [profileData, preferencesData] = await Promise.all([
@@ -61,7 +38,40 @@ export function useUser() {
     } finally {
       setProfileLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!isLoaded) return
+
+    let cancelled = false
+    // Deferred to a microtask: effects should not set state synchronously.
+    Promise.resolve().then(() => {
+      if (cancelled) return
+
+      if (clerkUser) {
+        // Map Clerk user to ExtendedUser format
+        const mappedUser: ExtendedUser = {
+          id: clerkUser.id,
+          email: clerkUser.emailAddresses[0]?.emailAddress || '',
+          firstName: clerkUser.firstName,
+          lastName: clerkUser.lastName,
+          imageUrl: clerkUser.imageUrl,
+          created_at: clerkUser.createdAt?.toISOString() || new Date().toISOString(),
+        }
+        setUser(mappedUser)
+        void loadUserData(clerkUser.id)
+      } else {
+        setUser(null)
+        setProfile(null)
+        setPreferences(null)
+      }
+      setLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [clerkUser, isLoaded, loadUserData])
 
   const refreshUserData = async () => {
     if (!user) return
