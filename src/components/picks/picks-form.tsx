@@ -81,7 +81,7 @@ export function PicksForm({ week, initialPicks }: PicksFormProps) {
     <div className="space-y-3">
       {/* Week header */}
       <div className="animate-fade-up mb-5">
-        <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/40 mb-1">
+        <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/60 mb-1">
           Week {week.week_number}
         </p>
         <h1 className="font-(family-name:--font-bebas) text-4xl text-white leading-none tracking-wide">
@@ -99,7 +99,7 @@ export function PicksForm({ week, initialPicks }: PicksFormProps) {
                   style={{ width: `${progress * 100}%` }}
                 />
               </div>
-              <span className="text-[10px] font-(family-name:--font-dm-mono) text-white/40 shrink-0">
+              <span className="text-[10px] font-(family-name:--font-dm-mono) text-white/60 shrink-0">
                 {picksCount}/{pickQuestions.length}
               </span>
             </div>
@@ -165,7 +165,7 @@ export function PicksForm({ week, initialPicks }: PicksFormProps) {
           <p className="font-(family-name:--font-bebas) text-xl text-white/60 tracking-wide">
             Picks are locked
           </p>
-          <p className="text-[13px] text-white/30 mt-1">Results coming after games</p>
+          <p className="text-[13px] text-white/55 mt-1">Results coming after games</p>
         </div>
       )}
 
@@ -199,7 +199,7 @@ function ScoreSummary({ picks, totalQuestions }: { picks: Pick[]; totalQuestions
   return (
     <div className="rounded-[14px] bg-[#1a1a1f] border border-white/[0.08] p-5 text-center animate-fade-up" style={{ animationDelay: '200ms' }}>
       <p className="font-(family-name:--font-bebas) text-5xl text-white tracking-wide">
-        {correct}<span className="text-white/30">/{totalQuestions}</span>
+        {correct}<span className="text-white/55">/{totalQuestions}</span>
       </p>
       <p className="text-[13px] text-white/50 mt-1">
         {attempted < totalQuestions ? `${totalQuestions - attempted} questions skipped` : 'All questions answered'}

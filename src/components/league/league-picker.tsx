@@ -15,7 +15,7 @@ export function LeaguePicker() {
     <div className="space-y-3">
       <p
         id="league-picker-label"
-        className="font-(family-name:--font-dm-mono) text-[10px] uppercase tracking-widest text-white/30"
+        className="font-(family-name:--font-dm-mono) text-[10px] uppercase tracking-widest text-white/55"
       >
         Pick your league
       </p>
@@ -30,7 +30,7 @@ export function LeaguePicker() {
               <span className="font-(family-name:--font-bebas) text-2xl tracking-wide text-white leading-none">
                 {LEAGUE_LABELS[league]}
               </span>
-              <span className="text-[11px] leading-snug text-white/40">{BLURBS[league]}</span>
+              <span className="text-[11px] leading-snug text-white/60">{BLURBS[league]}</span>
             </Link>
           </li>
         ))}

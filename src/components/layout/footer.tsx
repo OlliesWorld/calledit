@@ -26,17 +26,17 @@ export function Footer({ league = DEFAULT_LEAGUE, className }: FooterProps) {
         >
           {siteConfig.name}
         </Link>
-        <p className="text-white/30 text-xs leading-relaxed">
+        <p className="text-white/55 text-xs leading-relaxed">
           {tagline}
         </p>
         {disclaimer && (
-          <p className="text-white/40 text-xs leading-relaxed">{disclaimer}</p>
+          <p className="text-white/60 text-xs leading-relaxed">{disclaimer}</p>
         )}
-        <div className="flex gap-6 text-xs text-white/20">
-          <Link href="#" className="hover:text-white/50 transition-colors">Privacy</Link>
-          <Link href="#" className="hover:text-white/50 transition-colors">Terms</Link>
+        <div className="flex gap-6 text-xs text-white/55">
+          <Link href="#" className="hover:text-white/85 transition-colors">Privacy</Link>
+          <Link href="#" className="hover:text-white/85 transition-colors">Terms</Link>
         </div>
-        <p className="text-white/15 text-[10px]">
+        <p className="text-white/55 text-[10px]">
           © {new Date().getFullYear()} {siteConfig.name}
         </p>
       </div>

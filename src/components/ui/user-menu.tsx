@@ -45,8 +45,12 @@ export function UserMenu() {
   return (
     <div ref={ref} className="relative">
       <button
+        type="button"
+        aria-label="Account menu"
+        aria-haspopup="menu"
+        aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="rounded-full overflow-hidden ring-2 ring-transparent hover:ring-white/20 transition-all"
+        className="rounded-full overflow-hidden ring-2 ring-transparent hover:ring-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange transition-all"
       >
         <UserAvatar seed={seed} variant={variant} size={32} />
       </button>

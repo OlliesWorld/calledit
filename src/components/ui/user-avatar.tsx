@@ -20,6 +20,8 @@ export function UserAvatar({ seed, variant = 'beam', size = 32 }: UserAvatarProp
       name={seed || 'default'}
       variant={variant}
       colors={COLORS}
+      // Decorative: the control around it carries the accessible name
+      aria-hidden="true"
     />
   )
 }
