@@ -10,5 +10,5 @@ import { Footer } from './footer'
  */
 export function AppFooter({ className }: { className?: string }) {
   const league = leagueFromPathname(usePathname())
-  return <Footer league={league} className={className} />
+  return <Footer league={league} variant="compact" className={className} />
 }
