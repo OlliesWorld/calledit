@@ -11,7 +11,6 @@ export const ROUTES = {
 
   // Dashboard routes
   DASHBOARD: '/dashboard',
-  AI_CHAT: '/ai-chat',
   PROFILE: '/profile',
   SETTINGS: '/settings',
 

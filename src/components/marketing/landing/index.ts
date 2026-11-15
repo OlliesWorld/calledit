@@ -13,12 +13,6 @@ export * from './problem-solution'
 // Features components
 export * from './features'
 
-// AI API components
-export * from './ai-api'
-
-// AI Assistant components
-export * from './ai-assistant'
-
 // Pricing components
 export * from './pricing'
 

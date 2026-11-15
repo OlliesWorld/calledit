@@ -1,5 +1,5 @@
 import { Lock, CreditCard, Database, Palette, Code2, FileText, Rocket, Zap, Hammer, Sparkles, UserCheck } from 'lucide-react'
-import type { FeatureConfig, AITool, BenefitCardProps, TechStackCardProps } from '@/components/marketing/landing/types'
+import type { FeatureConfig, TechStackCardProps } from '@/components/marketing/landing/types'
 import { createElement } from 'react'
 
 // Helper to create icon elements
@@ -191,33 +191,6 @@ export const defaultTechStack: Omit<TechStackCardProps, 'className'>[] = [
   },
 ]
 
-export const defaultAITools: AITool[] = [
-  { name: 'GitHub Copilot', description: 'AI pair programmer' },
-  { name: 'Claude Code', description: 'Terminal agent' },
-  { name: 'Windsurf', description: 'AI-powered IDE' },
-  { name: 'Antigravity', description: 'Coding Agent' },
-  { name: 'Codex', description: 'Coding Agent' },
-  { name: 'Any AI Tool', description: 'Works with all', isSpecial: true },
-]
-
-export const defaultAIBenefits: Omit<BenefitCardProps, 'className'>[] = [
-  {
-    icon: icon(FileText, 'w-6 h-6 text-[#E07A5F]'),
-    title: 'Clear Context',
-    description: "Organized file structure helps AI understand your project's architecture instantly.",
-  },
-  {
-    icon: icon(Code2, 'w-6 h-6 text-[#E07A5F]'),
-    title: 'Type Safety',
-    description: 'Full TypeScript implementation guides AI to write bug-free, accurate code.',
-  },
-  {
-    icon: icon(Sparkles, 'w-6 h-6 text-[#E07A5F]'),
-    title: 'Modern Patterns',
-    description: 'Built with the latest standards that AI models are trained to recognize and replicate.',
-  },
-]
-
 export const defaultPricingFeatures = [
   'Unlimited Commercial Projects',
   'Complete Next.js 16 + Clerk Auth Starter',
@@ -237,11 +210,3 @@ export const defaultTestimonialQuotes = [
   "Now I skip straight to the custom features. I can take on twice as many projects because the foundation is already done.",
 ]
 
-export const defaultAIApiBenefits = [
-  'Type-safe responses across all providers',
-  'Built-in rate limiting and error handling',
-  'Stream responses with zero config',
-  'Easy model switching via config',
-]
-
-export const defaultAIProviders = ['OpenAI', 'Anthropic', 'Google']

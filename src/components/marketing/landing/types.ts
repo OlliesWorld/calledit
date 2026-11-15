@@ -113,41 +113,6 @@ export interface BenefitListProps {
   className?: string
 }
 
-export interface BenefitCardProps {
-  icon: ReactNode
-  title: string
-  description: string
-  className?: string
-}
-
-// AI Tool types
-export interface AITool {
-  name: string
-  description: string
-  icon?: ReactNode
-  isSpecial?: boolean
-}
-
-export interface AIToolCardProps extends AITool {
-  className?: string
-}
-
-export interface AIToolsGridProps {
-  tools: AITool[]
-  className?: string
-}
-
-// Code block types
-export interface CodeBlockProps extends BaseComponentProps {
-  filename?: string
-}
-
-export interface ProviderBadgesProps {
-  providers: string[]
-  label?: string
-  className?: string
-}
-
 // Pricing types
 export interface PricingCardProps {
   name: string

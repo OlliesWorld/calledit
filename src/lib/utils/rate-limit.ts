@@ -98,9 +98,6 @@ export const checkoutRateLimiter = new RateLimiter(60000, 5)
 // Webhooks: 100 requests per minute per IP (Stripe sends many webhooks)
 export const webhookRateLimiter = new RateLimiter(60000, 100)
 
-// AI Chat: 20 requests per minute per IP
-export const aiChatRateLimiter = new RateLimiter(60000, 20)
-
 /**
  * Apply rate limiting to a request
  * Returns a 429 response if rate limit is exceeded, null otherwise

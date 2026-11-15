@@ -4,8 +4,6 @@ import {
   HeroSection,
   ProblemSolutionSection,
   FeaturesSection,
-  AIApiSection,
-  AIAssistantSection,
   PricingSection,
   CtaSection,
 } from './landing'
@@ -16,8 +14,6 @@ export function LandingPage() {
       <HeroSection />
       <ProblemSolutionSection />
       <FeaturesSection />
-      <AIApiSection />
-      <AIAssistantSection />
       <PricingSection />
       <CtaSection />
     </div>
