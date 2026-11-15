@@ -75,6 +75,7 @@ export async function GET(req: NextRequest) {
       user_id: userId,
       display_name: resolveDisplayName(profileMap.get(userId), userId),
       avatar_url: profileMap.get(userId)?.avatar_url ?? null,
+      avatar_seed: profileMap.get(userId)?.username ?? userId,
       total_correct: data.correct,
       weeks_played: data.weeks.size,
     }))

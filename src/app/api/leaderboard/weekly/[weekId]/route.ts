@@ -45,8 +45,10 @@ export async function GET(
     week = data
   } else {
     const { data } = await supabase.from('weeks').select('*').eq('id', weekId).single()
-    // A week from another league doesn't exist as far as this league is concerned
-    if (data && data.league !== league) {
+    // A week from another league doesn't exist as far as this league is concerned.
+    // Neither does a week that isn't scored yet: its entries would reveal
+    // everyone's tiebreaker guesses while picks can still be changed.
+    if (data && (data.league !== league || data.status !== 'scored')) {
       return NextResponse.json({ error: 'Week not found' }, { status: 404 })
     }
     week = data
@@ -116,6 +118,7 @@ export async function GET(
       user_id: userId,
       display_name: resolveDisplayName(profileMap.get(userId), userId),
       avatar_url: profileMap.get(userId)?.avatar_url ?? null,
+      avatar_seed: profileMap.get(userId)?.username ?? userId,
       score: data.score,
       total_pick_questions: pickCount,
       tiebreaker_guess: data.tiebreaker_guess,
