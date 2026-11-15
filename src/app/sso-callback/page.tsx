@@ -2,6 +2,7 @@
 
 import { AuthenticateWithRedirectCallback } from '@clerk/nextjs'
 import { Suspense } from 'react'
+import { Footer } from '@/components/layout/footer'
 
 function SSOCallbackContent() {
   return (
@@ -14,14 +15,13 @@ function SSOCallbackContent() {
 
 export default function SSOCallback() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center text-white/40">Loading...</div>
-        </div>
-      }
-    >
-      <SSOCallbackContent />
-    </Suspense>
+    <div className="min-h-screen flex flex-col bg-[#0a0a0b]">
+      <div className="flex-1 flex items-center justify-center">
+        <Suspense fallback={<div className="text-center text-white/40">Loading...</div>}>
+          <SSOCallbackContent />
+        </Suspense>
+      </div>
+      <Footer league={null} />
+    </div>
   )
 }
