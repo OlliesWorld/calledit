@@ -82,7 +82,7 @@ export function BottomNav({ isAdmin }: { isAdmin?: boolean }) {
                 href={tab.href}
                 className={cn(
                   'flex-1 flex flex-col items-center gap-1 pt-3 pb-2 text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-colors',
-                  isActive ? 'text-orange' : 'text-white/40 hover:text-white/70'
+                  isActive ? 'text-orange' : 'text-white/60 hover:text-white/90'
                 )}
               >
                 {tab.icon(isActive)}

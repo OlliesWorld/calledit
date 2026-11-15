@@ -63,7 +63,7 @@ function RankCell({ rank }: { rank: number }) {
     return <span className="text-base leading-none w-6 text-center">{MEDAL[rank]}</span>
   }
   return (
-    <span className="text-[12px] font-(family-name:--font-dm-mono) text-white/30 w-6 text-center">
+    <span className="text-[12px] font-(family-name:--font-dm-mono) text-white/55 w-6 text-center">
       {rank}
     </span>
   )
@@ -104,11 +104,11 @@ function WeeklyRow({
         <span className="font-(family-name:--font-bebas) text-xl text-white leading-none">
           {entry.score}
         </span>
-        <span className="font-(family-name:--font-bebas) text-xl text-white/30 leading-none">
+        <span className="font-(family-name:--font-bebas) text-xl text-white/55 leading-none">
           /{entry.total_pick_questions}
         </span>
         {entry.tiebreaker_guess !== null && (
-          <p className="text-[10px] font-(family-name:--font-dm-mono) text-white/30 mt-0.5">
+          <p className="text-[10px] font-(family-name:--font-dm-mono) text-white/55 mt-0.5">
             TB: {entry.tiebreaker_guess}
           </p>
         )}
@@ -146,7 +146,7 @@ function SeasonRow({ entry, isMe }: { entry: SeasonEntry; isMe: boolean }) {
         <span className="font-(family-name:--font-bebas) text-2xl text-white leading-none">
           {entry.total_correct}
         </span>
-        <p className="text-[10px] font-(family-name:--font-dm-mono) text-white/30 mt-0.5">
+        <p className="text-[10px] font-(family-name:--font-dm-mono) text-white/55 mt-0.5">
           {entry.weeks_played}w played
         </p>
       </div>
@@ -212,7 +212,7 @@ export function LeaderboardTable({ currentUserId, league }: { currentUserId: str
     <div className="space-y-4">
       {/* Header */}
       <div className="animate-fade-up">
-        <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/40 mb-1">
+        <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/60 mb-1">
           Standings
         </p>
         <h1 className="font-(family-name:--font-bebas) text-4xl text-white leading-none tracking-wide">
@@ -230,7 +230,7 @@ export function LeaderboardTable({ currentUserId, league }: { currentUserId: str
               'flex-1 py-2 rounded-[8px] text-[11px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-all',
               tab === t
                 ? 'bg-orange text-black font-medium'
-                : 'text-white/40 hover:text-white/60',
+                : 'text-white/60 hover:text-white/85',
             )}
           >
             {t === 'weekly' ? 'This Week' : 'Season'}
@@ -317,8 +317,8 @@ function LoadingSkeleton() {
 function EmptyState({ message, sub }: { message: string; sub: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <p className="font-(family-name:--font-bebas) text-2xl text-white/30 tracking-wide">{message}</p>
-      <p className="text-[13px] text-white/25 mt-1">{sub}</p>
+      <p className="font-(family-name:--font-bebas) text-2xl text-white/55 tracking-wide">{message}</p>
+      <p className="text-[13px] text-white/55 mt-1">{sub}</p>
     </div>
   )
 }

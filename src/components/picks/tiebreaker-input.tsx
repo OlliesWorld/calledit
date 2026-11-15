@@ -51,7 +51,7 @@ export function TiebreakerInput({ question, pick, weekStatus, onChange, index }:
         />
         {isScored && question.tiebreaker_answer !== null && (
           <div className="text-right shrink-0">
-            <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/40">Answer</p>
+            <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/60">Answer</p>
             <p className="text-lg font-(family-name:--font-bebas) text-lime">{question.tiebreaker_answer}</p>
           </div>
         )}
