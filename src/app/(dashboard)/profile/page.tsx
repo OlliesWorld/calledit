@@ -14,7 +14,12 @@ export default function ProfilePage() {
   const [updateLoading, setUpdateLoading] = useState(false)
   const [success, setSuccess] = useState('')
 
-  if (loading) {
+  // Keep the spinner up until the profile's first load has finished, so the
+  // form appears once, already filled in, instead of rendering empty and then
+  // shifting when the data and the "loading" notice swap places.
+  const firstProfileLoad = profileLoading && !profile
+
+  if (loading || firstProfileLoad) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto" />
@@ -84,12 +89,6 @@ export default function ProfilePage() {
       {success && (
         <div className="mb-6 p-3 text-sm text-green-400 bg-green-500/10 rounded-xl border border-green-500/20">
           {success}
-        </div>
-      )}
-
-      {profileLoading && (
-        <div className="mb-6 p-3 text-sm text-white/40 bg-white/5 rounded-xl border border-white/10">
-          Loading profile data...
         </div>
       )}
 

@@ -1,6 +1,0 @@
-export { FeaturesHeader, type FeaturesHeaderProps } from './features-header'
-export { FeatureTabButton } from './feature-tab-button'
-export { ProviderBadge } from './provider-badge'
-export { FeatureDetailsCard } from './feature-details-card'
-export { FeatureTabs } from './feature-tabs'
-export { FeaturesSection, type FeaturesSectionProps } from './features-section'

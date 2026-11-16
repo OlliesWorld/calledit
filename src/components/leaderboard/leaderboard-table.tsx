@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import type { League } from '@/lib/leagues'
+import { MemberAvatar } from '@/components/ui/member-avatar'
 
 interface WeeklyEntry {
   rank: number
   user_id: string
   display_name: string
   avatar_url: string | null
+  avatar_seed?: string
   score: number
   total_pick_questions: number
   tiebreaker_guess: number | null
@@ -20,6 +22,7 @@ interface SeasonEntry {
   user_id: string
   display_name: string
   avatar_url: string | null
+  avatar_seed?: string
   total_correct: number
   weeks_played: number
 }
@@ -38,25 +41,6 @@ interface WeeklyResponse {
 }
 
 const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
-
-function Avatar({ name, url }: { name: string; url: string | null }) {
-  if (url) {
-    return (
-      <img
-        src={url}
-        alt={name}
-        className="w-8 h-8 rounded-full object-cover shrink-0"
-      />
-    )
-  }
-  return (
-    <div className="w-8 h-8 rounded-full bg-[#2a2a30] flex items-center justify-center shrink-0">
-      <span className="text-[11px] font-(family-name:--font-dm-mono) text-white/50 uppercase">
-        {name.slice(0, 2)}
-      </span>
-    </div>
-  )
-}
 
 function RankCell({ rank }: { rank: number }) {
   if (MEDAL[rank]) {
@@ -86,7 +70,7 @@ function WeeklyRow({
       )}
     >
       <RankCell rank={entry.rank} />
-      <Avatar name={entry.display_name} url={entry.avatar_url} />
+      <MemberAvatar name={entry.display_name} url={entry.avatar_url} seed={entry.avatar_seed ?? entry.user_id} />
       <span
         className={cn(
           'flex-1 text-[14px] font-(family-name:--font-dm-sans) truncate',
@@ -128,7 +112,7 @@ function SeasonRow({ entry, isMe }: { entry: SeasonEntry; isMe: boolean }) {
       )}
     >
       <RankCell rank={entry.rank} />
-      <Avatar name={entry.display_name} url={entry.avatar_url} />
+      <MemberAvatar name={entry.display_name} url={entry.avatar_url} seed={entry.avatar_seed ?? entry.user_id} />
       <span
         className={cn(
           'flex-1 text-[14px] font-(family-name:--font-dm-sans) truncate',

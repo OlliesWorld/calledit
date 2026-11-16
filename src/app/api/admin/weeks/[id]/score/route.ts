@@ -13,7 +13,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
 
   const { id } = await params
-  const { answers, tiebreakerAnswer } = await req.json()
+  const body = await req.json().catch(() => null)
+  const answers = body?.answers
+  const tiebreakerAnswer = body?.tiebreakerAnswer
+  const validAnswers =
+    answers && typeof answers === 'object' && !Array.isArray(answers) &&
+    Object.values(answers).every((v) => typeof v === 'boolean')
+  const validTiebreaker = tiebreakerAnswer === undefined || (typeof tiebreakerAnswer === 'number' && Number.isFinite(tiebreakerAnswer))
+  if (!validAnswers || !validTiebreaker) {
+    return NextResponse.json({ error: 'answers must map question ids to true/false; tiebreakerAnswer must be a number' }, { status: 400 })
+  }
   // answers: { [questionId]: boolean }
   // tiebreakerAnswer: number
 
@@ -23,16 +32,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .from('questions')
       .update({ correct_answer: correctAnswer })
       .eq('id', questionId)
+      .eq('week_id', id)
 
     await supabase
       .from('picks')
       .update({ is_correct: false })
       .eq('question_id', questionId)
+      .eq('week_id', id)
 
     await supabase
       .from('picks')
       .update({ is_correct: true })
       .eq('question_id', questionId)
+      .eq('week_id', id)
       .eq('answer', correctAnswer)
   }
 

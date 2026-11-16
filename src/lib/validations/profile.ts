@@ -18,7 +18,13 @@ export const profileUpdateSchema = z.object({
   company: z.string().max(255).optional().nullable(),
   job_title: z.string().max(255).optional().nullable(),
   phone: z.string().max(50).optional().nullable(),
-  avatar_url: z.string().url().optional().nullable(),
+  // Only the built-in generated avatars ("boring:<variant>"). Arbitrary image
+  // URLs would be loaded by every viewer of the leaderboard.
+  avatar_url: z
+    .string()
+    .regex(/^boring:(beam|marble|pixel|sunset|ring|bauhaus)$/, 'Unknown avatar')
+    .optional()
+    .nullable(),
 })
 
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>

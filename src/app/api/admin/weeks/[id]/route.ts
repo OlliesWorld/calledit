@@ -42,11 +42,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
 
   const { id } = await params
-  const { starts_at, locks_at } = await req.json()
+  const body = await req.json().catch(() => null)
+  const { starts_at, locks_at } = body ?? {}
 
   const update: { starts_at?: string; locks_at?: string } = {}
-  if (starts_at) update.starts_at = new Date(starts_at).toISOString()
-  if (locks_at) update.locks_at = new Date(locks_at).toISOString()
+  for (const [key, value] of [['starts_at', starts_at], ['locks_at', locks_at]] as const) {
+    if (!value) continue
+    const ms = typeof value === 'string' ? Date.parse(value) : NaN
+    if (Number.isNaN(ms)) return NextResponse.json({ error: `${key} must be a valid date` }, { status: 400 })
+    update[key] = new Date(ms).toISOString()
+  }
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
