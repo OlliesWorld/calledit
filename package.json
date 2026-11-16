@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "types:generate": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" --schema public > src/types/database.ts",
-    "validate-setup": "node scripts/validate-setup.js",
-    "release": "bash scripts/build-release.sh"
+    "validate-setup": "node scripts/validate-setup.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.94.0",
