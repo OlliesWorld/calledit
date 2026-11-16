@@ -20,7 +20,7 @@ const MOCK_PICKS = [
     matchup: 'Phantom BC vs Mist BC',
     when: 'Jan 8 · Boston',
     question: 'Will Phantom BC defeat Mist BC?',
-    flavor: 'Opening night at TD Garden. Pick a side.',
+    flavor: 'Unrivaled takes the show on the road for 2027, and it all starts at TD Garden. First game of the season, first chance to look like a genius.',
     pickedYes: true,
   },
   {
