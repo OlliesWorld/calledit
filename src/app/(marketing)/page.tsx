@@ -50,7 +50,7 @@ export default function Home() {
           <div className="animate-fade-up flex justify-center">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-lime/30 bg-lime/10 text-lime font-(family-name:--font-dm-mono) text-[10px] uppercase tracking-widest">
               <span className="w-1.5 h-1.5 rounded-full bg-lime animate-pulse" />
-              WNBA 2025 · Picks Open
+              WNBA 2026 · Picks Open
             </span>
           </div>
 
@@ -68,7 +68,7 @@ export default function Home() {
           {/* Sub */}
           <div className="animate-fade-up stagger-2 space-y-2">
             <p className="text-white/70 text-base leading-relaxed">
-              Make your WNBA picks before tip-off. Lock them in. Prove you called it.
+              Make your WNBA or Unrivaled picks before tip-off. Lock them in. Prove you called it.
             </p>
             <p className="text-white/30 text-sm font-(family-name:--font-dm-mono) uppercase tracking-widest">
               New matchups every week · Free to play
