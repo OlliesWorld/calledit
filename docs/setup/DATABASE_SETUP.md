@@ -16,8 +16,10 @@ Make sure you have the following environment variables in your `.env.local` file
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-secret-key
 ```
+
+The app only uses Supabase from the server, so no anon/publishable key is needed.
 
 ### 2. Run Database Migrations
 

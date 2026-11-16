@@ -1,223 +1,78 @@
-# 🔒 LaunchKit Security Features
+# CalledIt Security
 
-This document describes the security measures built into LaunchKit. These protections are active out of the box — no additional configuration required.
+How CalledIt protects player data, picks and answers, and what to keep in mind when changing it.
 
----
+## Database access
 
-## HTTP Security Headers
+**Rule: the browser never talks to Supabase.** Every query runs on the server through the service-role client in `src/lib/supabase/admin.ts`, which is guarded by `import 'server-only'` so it can't end up in a client bundle. The user's identity always comes from Clerk's server-side `auth()`, never from the request body.
 
-All responses include the following headers via `next.config.ts`:
+**Table grants are revoked.** Every Supabase project ships a public anon key. Before migration `008_revoke_public_table_access`, that key could read `weeks` and `questions` directly, including `correct_answer` and `tiebreaker_answer` before a week locked. 008 revokes all table privileges from the `anon` and `authenticated` roles on every CalledIt table. RLS is still enabled underneath as a second layer.
 
-| Header | Value | Protection |
-|--------|-------|------------|
-| `X-Frame-Options` | `DENY` | Prevents clickjacking by blocking iframe embedding |
-| `X-Content-Type-Options` | `nosniff` | Stops browsers from MIME-type sniffing |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` | Limits referrer data sent to external origins |
-| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` | Forces HTTPS for 2 years, including subdomains |
-| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disables access to sensitive browser APIs |
-| `X-DNS-Prefetch-Control` | `on` | Enables DNS prefetching for performance |
+If a future feature needs browser-side reads, expose a view without the answer columns and grant `SELECT` on that view. Don't re-grant the tables.
 
-**File:** `next.config.ts`
+## Picks and scoring
 
----
+| Check | Where |
+|-------|-------|
+| Picks rejected after the week's `locks_at` (403) | `src/lib/picks/actions.ts` |
+| Picks rejected for a question that isn't in that week (400) | `src/lib/picks/actions.ts` |
+| Body validated: UUID ids, exactly one of `answer` / `tiebreakerGuess`, guess 0–100000 | `src/app/api/picks/route.ts` |
+| Database errors logged on the server; players get a generic message | `src/app/api/picks/route.ts` |
+| Weekly leaderboard (and everyone's tiebreaker guesses) only for scored weeks | `src/app/api/leaderboard/weekly/[weekId]/route.ts` |
+| Leaderboard requests for a week in another league return 404 | same |
 
-## Authentication & Access Control
+## Admin
 
-### Clerk Middleware (Route Protection)
+- `/admin` pages and `/api/admin/*` routes require the Clerk user id to be in `ADMIN_USER_IDS` (`src/lib/auth/admin.ts`).
+- Every admin body is validated: question edits, week date edits (real dates only), scoring (booleans and numbers keyed by question id, updates scoped to that week), and question generation (strict `YYYY-MM-DD`).
+- Generation refuses a week that already has questions (409), so a double-click can't trigger a second paid model call.
+- The league used for generation is read from the week row in the database, never from the client.
 
-All routes are protected by default via Clerk's middleware. Only explicitly listed public routes are accessible without authentication:
+## Profiles and avatars
 
-- `/` (landing page)
-- `/login`, `/signup`
-- `/api/webhooks` (Stripe — verified by signature, not session)
+- `avatar_url` only accepts `boring:<variant>` for one of the built-in generated avatars (`src/lib/validations/profile.ts`).
+- Other people's avatars render through `MemberAvatar` (`src/components/ui/member-avatar.tsx`): generated avatars draw locally, and Clerk photos load only from `img.clerk.com`. Anything else shows initials, so a stored URL can't be used to make browsers fetch an arbitrary address.
 
-**File:** `src/proxy.ts`
+## Rate limiting
 
-### Server-Side Auth Pattern
+`src/lib/utils/rate-limit.ts`, in-memory and fixed-window.
 
-Server actions and API routes always derive the user identity from Clerk's server-side `auth()` — never from client-supplied data:
+| Endpoint | Limit | Counted by |
+|----------|-------|------------|
+| `POST /api/picks` | 60 / minute | Clerk user id |
+| `POST /api/checkout_sessions` | 5 / minute | Clerk user id |
+| `POST /api/webhooks` | 100 / minute | IP |
 
-```ts
-const { userId } = await auth()
-if (!userId) throw new Error('Unauthorized')
-```
+Signed-in routes count by Clerk user id, which the client can't fake. IP-based limits read `x-vercel-forwarded-for` / `x-real-ip`, which Vercel overwrites with the address it saw.
 
-This prevents any client from impersonating another user by passing a forged `userId`.
+Counters live per server instance, so this stops one client hammering an endpoint but isn't a global cap. For a hard limit, move the counters to a shared store such as Upstash Redis.
 
-**Files:** `src/lib/profile/actions.ts`, `src/app/api/checkout_sessions/route.ts`, `src/app/api/ai/chat/route.ts`
+## HTTP headers
 
----
+Set for every response in `next.config.ts`:
 
-## Database Security
+| Header | Purpose |
+|--------|---------|
+| `Content-Security-Policy` | Scripts, frames and API calls only from this site and Clerk (the Clerk host is read from the publishable key). `frame-ancestors 'none'`, `object-src 'none'`. |
+| `Strict-Transport-Security` | HTTPS only, two years, subdomains included |
+| `X-Frame-Options: DENY` | No embedding in iframes |
+| `X-Content-Type-Options: nosniff` | No MIME sniffing |
+| `Referrer-Policy: strict-origin-when-cross-origin` | Limits referrer data |
+| `Permissions-Policy` | Camera, microphone and geolocation off |
 
-### Server Actions with Admin Client
+The CSP follows [Clerk's guidance](https://clerk.com/docs/security/clerk-csp). It needs `'unsafe-inline'` for Next's inline bootstrap scripts and Clerk's injected styles. `'unsafe-eval'` and `ws:` are added in development only. **When you add a new script, image host or browser-side API, add its origin to the matching directive**, or the browser will block it (look for "Content Security Policy" errors in the console).
 
-All client-side profile and preferences operations delegate to server actions that:
+## Payments (Stripe, not used in v1)
 
-1. **Authenticate** via Clerk (`auth()`) — userId is never taken from the client
-2. **Validate** all input with Zod schemas before writing to the database
-3. **Execute** queries using the Supabase admin client (service role), bypassing RLS
+- Webhooks are verified with `stripe.webhooks.constructEvent()` and `STRIPE_WEBHOOK_SECRET`.
+- Checkout only accepts price ids from `src/config/pricing.ts`.
+- Subscription upserts use `onConflict: 'stripe_subscription_id'`, so Stripe's retries don't create duplicates.
 
-This ensures database operations work correctly with Clerk authentication without requiring Clerk↔Supabase JWT integration.
+## Checklist for changes
 
-**Files:** `src/lib/profile/actions.ts`, `src/lib/profile/client.ts`
-
-### Row Level Security (RLS)
-
-All Supabase tables have RLS enabled with policies for:
-
-- **Service role** — full access (used by server actions and webhooks)
-- **Clerk JWT** — scoped access via `auth.jwt()->>'sub'` (available if Clerk JWT integration is configured)
-
-**Files:** `supabase/migrations/001_create_user_subscriptions.sql`, `002_create_profiles_table.sql`, `003_create_user_preferences_table.sql`
-
-### Admin Client Isolation
-
-The Supabase admin client (service role key) is protected by the `server-only` import guard, making it impossible to import in client components:
-
-```ts
-import 'server-only'
-```
-
-**File:** `src/lib/supabase/admin.ts`
-
----
-
-## Input Validation
-
-All user input is validated server-side with Zod schemas before processing:
-
-| Endpoint / Action | Schema | File |
-|-------------------|--------|------|
-| Checkout session creation | `checkoutSessionSchema` | `src/lib/validations/checkout.ts` |
-| AI chat messages | `chatRequestSchema` | `src/lib/validations/ai.ts` |
-| Profile updates | `profileUpdateSchema` | `src/lib/validations/profile.ts` |
-| Preferences updates | `userPreferencesSchema` | `src/lib/validations/profile.ts` |
-| Contact form | `contactFormSchema` | `src/lib/validations/marketing.ts` |
-| Auth (signup/signin) | `signUpSchema`, `signInSchema` | `src/lib/validations/auth.ts` |
-
----
-
-## Payment Security (Stripe)
-
-### Webhook Signature Verification
-
-All incoming Stripe webhooks are verified using `stripe.webhooks.constructEvent()` with the `STRIPE_WEBHOOK_SECRET`. Invalid signatures are rejected with a generic error message (no internal details leaked).
-
-### Price ID Allowlist
-
-The checkout endpoint validates `priceId` against the configured pricing plans — arbitrary price IDs are rejected:
-
-```ts
-const allowedPriceIds = new Set(
-  pricingPlans.map((plan) => plan.priceId).filter(Boolean)
-)
-if (!allowedPriceIds.has(priceId)) {
-  return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 })
-}
-```
-
-### Idempotent Webhook Processing
-
-Subscription upserts use `onConflict: 'stripe_subscription_id'` to handle Stripe's webhook retry behavior gracefully without creating duplicate records.
-
-**Files:** `src/app/api/webhooks/route.ts`, `src/app/api/checkout_sessions/route.ts`
-
----
-
-## AI Security (OWASP LLM Top 10)
-
-### Prompt Injection Protection (LLM01)
-
-User messages are sanitized before being sent to the model. Known injection patterns are detected and replaced:
-
-- Instruction override attempts (`ignore previous instructions`)
-- System prompt extraction attempts (`show me your prompt`)
-- Role manipulation (`you are now`, `pretend to be`)
-- DAN-style jailbreaks
-
-**File:** `src/lib/ai/sanitize.ts`
-
-### System Prompt Hardening
-
-A security-hardened system prompt is prepended to every conversation with explicit rules against prompt leaking, instruction override, and harmful content generation.
-
-**File:** `src/lib/ai/sanitize.ts` → `getSecureSystemPrompt()`
-
-### Output Filtering (LLM06 — Information Disclosure)
-
-AI responses are filtered through a `TransformStream` that redacts:
-
-- Credentials (passwords, API keys, tokens, secrets)
-- Personal information (emails, SSNs, credit card numbers, phone numbers)
-- Technical details (IP addresses, private keys)
-- Dangerous code patterns (`rm -rf`, `eval()`, `DROP TABLE`, `<script>`)
-
-**Files:** `src/lib/ai/filter.ts`, `src/app/api/ai/chat/route.ts`
-
-### Token Exhaustion Protection
-
-- Max message length: 4,000 characters per message
-- Max conversation length: 50 messages
-- Max output tokens: 2,000 per response
-- Response length cap: 10,000 characters
-
-**Files:** `src/lib/validations/ai.ts`, `src/lib/ai/sanitize.ts`, `src/app/api/ai/chat/route.ts`
-
----
-
-## Rate Limiting
-
-In-memory rate limiters are configured per endpoint:
-
-| Endpoint | Limit | Window |
-|----------|-------|--------|
-| Checkout sessions | 5 requests | 1 minute |
-| AI chat | 20 requests | 1 minute |
-| Webhooks | 100 requests | 1 minute |
-
-**File:** `src/lib/utils/rate-limit.ts`
-
-> **⚠️ Production Note:** The built-in rate limiter uses in-memory storage, which works for single-instance deployments but resets on each serverless invocation. For production on Netlify/Vercel, replace with [Upstash Rate Limit](https://upstash.com/docs/redis/sdks/ratelimit-ts/overview) (free tier available, same API pattern).
-
----
-
-## Error Handling (No Information Leakage)
-
-API error responses return generic messages to the client. Internal details (stack traces, SDK errors, configuration info) are logged server-side only:
-
-```ts
-// ✅ What the client sees
-{ error: 'Failed to create checkout session. Please try again.' }
-
-// ✅ What the server logs
-console.error('Error creating checkout session:', err)
-```
-
-**Files:** `src/app/api/webhooks/route.ts`, `src/app/api/checkout_sessions/route.ts`, `src/app/api/ai/chat/route.ts`
-
----
-
-## File Upload Validation
-
-Avatar uploads are validated before processing:
-
-- **Allowed types:** JPEG, PNG, GIF, WebP only
-- **Max size:** 5 MB
-- **Storage:** User-scoped folders (`{userId}/avatar-{timestamp}.{ext}`)
-
-**File:** `src/lib/profile/client.ts`
-
----
-
-## Security Checklist for Builders
-
-When customizing LaunchKit for your app, keep these practices:
-
-- [ ] Set `NEXT_PUBLIC_APP_URL` to your production domain (Stripe redirects depend on it)
-- [ ] Use live Stripe keys and update `STRIPE_WEBHOOK_SECRET` for production
-- [ ] Consider [Upstash Rate Limit](https://upstash.com/docs/redis/sdks/ratelimit-ts/overview) if deploying to serverless
-- [ ] If adding new API routes, always call `auth()` and validate input with Zod
-- [ ] If adding new database tables, enable RLS and add service role policies
-- [ ] Never import from `@/lib/supabase/admin` in client components
-- [ ] Keep error messages generic in API responses — log details server-side
+- [ ] New API route: call `auth()` first, validate the body with Zod, return generic error messages.
+- [ ] New admin route: use `requireAdmin()` / `isAdmin()`.
+- [ ] New table: enable RLS and don't grant it to `anon` / `authenticated`.
+- [ ] Never import `@/lib/supabase/admin` from a client component (`server-only` will fail the build).
+- [ ] New external script, image host or browser API: add it to the CSP in `next.config.ts`.
+- [ ] Migrations: staging first, back up live, `supabase migration list` and `--dry-run` before `db push` (see the README).

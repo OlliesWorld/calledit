@@ -70,25 +70,32 @@ const REQUIRED_VARS = {
     example: 'https://abcdefghijklmnop.supabase.co',
     validate: (value) => value.startsWith('https://') && value.includes('.supabase.co')
   },
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY': {
-    description: 'Supabase anonymous key',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    validate: (value) => value.startsWith('eyJ') && value.length > 100
+  'SUPABASE_SERVICE_ROLE_KEY': {
+    description: 'Supabase secret (service role) key, server-only',
+    example: 'sb_secret_...',
+    validate: (value) => value.startsWith('sb_secret_') || (value.startsWith('eyJ') && value.length > 100)
   },
-  'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY': {
-    description: 'Stripe publishable key',
-    example: 'pk_test_...',
-    validate: (value) => value.startsWith('pk_test_') || value.startsWith('pk_live_')
-  },
-  'STRIPE_SECRET_KEY': {
-    description: 'Stripe secret key',
-    example: 'sk_test_...',
-    validate: (value) => value.startsWith('sk_test_') || value.startsWith('sk_live_')
+  'ADMIN_USER_IDS': {
+    description: 'Comma-separated Clerk user IDs allowed into /admin',
+    example: 'user_abc123,user_def456',
+    validate: (value) => value.split(',').every((id) => id.trim().startsWith('user_'))
   },
 }
 
 // Optional environment variables
 const OPTIONAL_VARS = {
+  'ANTHROPIC_API_KEY': {
+    description: 'Anthropic API key (admin question generation)',
+    example: 'sk-ant-...',
+  },
+  'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY': {
+    description: 'Stripe publishable key (payments are not used in v1)',
+    example: 'pk_test_...',
+  },
+  'STRIPE_SECRET_KEY': {
+    description: 'Stripe secret key (payments are not used in v1)',
+    example: 'sk_test_...',
+  },
   'STRIPE_WEBHOOK_SECRET': {
     description: 'Stripe webhook signing secret',
     example: 'whsec_...',
@@ -184,7 +191,7 @@ async function testSupabaseConnection() {
   logSection('Testing Supabase Connection')
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!url || !key) {
     logWarning('Skipping - Supabase credentials not set')
@@ -203,7 +210,7 @@ async function testSupabaseConnection() {
       logSuccess('Supabase connection successful')
     } else {
       logError(`Supabase connection failed with status ${response.status}`)
-      logInfo('Check your NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+      logInfo('Check your NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
       hasErrors = true
     }
   } catch (error) {
