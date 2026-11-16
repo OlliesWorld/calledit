@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { PickError, submitPick } from '@/lib/picks/actions'
+import { applyRateLimit, picksRateLimiter } from '@/lib/utils/rate-limit'
 
 const pickSchema = z
   .object({
@@ -17,6 +18,9 @@ const pickSchema = z
 export async function POST(req: NextRequest) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const limited = applyRateLimit(req, picksRateLimiter, userId)
+  if (limited) return limited
 
   let body: unknown
   try {

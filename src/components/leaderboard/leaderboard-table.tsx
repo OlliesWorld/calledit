@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import type { League } from '@/lib/leagues'
-import { UserAvatar, AVATAR_VARIANTS, type AvatarVariant } from '@/components/ui/user-avatar'
+import { MemberAvatar } from '@/components/ui/member-avatar'
 
 interface WeeklyEntry {
   rank: number
@@ -42,26 +42,6 @@ interface WeeklyResponse {
 
 const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
-function Avatar({ name, url, seed }: { name: string; url: string | null; seed: string }) {
-  // Profiles store a generated-avatar choice ("boring:<variant>"), not an image
-  // URL. Anything else falls back to initials rather than being fetched.
-  const variant = url?.startsWith('boring:') ? url.slice('boring:'.length) : null
-  if (variant && (AVATAR_VARIANTS as readonly string[]).includes(variant)) {
-    return (
-      <span className="w-8 h-8 rounded-full overflow-hidden shrink-0 block">
-        <UserAvatar seed={seed} variant={variant as AvatarVariant} size={32} />
-      </span>
-    )
-  }
-  return (
-    <div className="w-8 h-8 rounded-full bg-[#2a2a30] flex items-center justify-center shrink-0">
-      <span className="text-[11px] font-(family-name:--font-dm-mono) text-white/50 uppercase">
-        {name.slice(0, 2)}
-      </span>
-    </div>
-  )
-}
-
 function RankCell({ rank }: { rank: number }) {
   if (MEDAL[rank]) {
     return <span className="text-base leading-none w-6 text-center">{MEDAL[rank]}</span>
@@ -90,7 +70,7 @@ function WeeklyRow({
       )}
     >
       <RankCell rank={entry.rank} />
-      <Avatar name={entry.display_name} url={entry.avatar_url} seed={entry.avatar_seed ?? entry.user_id} />
+      <MemberAvatar name={entry.display_name} url={entry.avatar_url} seed={entry.avatar_seed ?? entry.user_id} />
       <span
         className={cn(
           'flex-1 text-[14px] font-(family-name:--font-dm-sans) truncate',
@@ -132,7 +112,7 @@ function SeasonRow({ entry, isMe }: { entry: SeasonEntry; isMe: boolean }) {
       )}
     >
       <RankCell rank={entry.rank} />
-      <Avatar name={entry.display_name} url={entry.avatar_url} seed={entry.avatar_seed ?? entry.user_id} />
+      <MemberAvatar name={entry.display_name} url={entry.avatar_url} seed={entry.avatar_seed ?? entry.user_id} />
       <span
         className={cn(
           'flex-1 text-[14px] font-(family-name:--font-dm-sans) truncate',

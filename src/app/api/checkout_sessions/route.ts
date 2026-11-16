@@ -14,8 +14,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Apply rate limiting (5 requests per minute per IP)
-  const rateLimitResponse = applyRateLimit(req, checkoutRateLimiter)
+  const { userId } = await auth()
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 5 requests per minute per signed-in user
+  const rateLimitResponse = applyRateLimit(req, checkoutRateLimiter, userId)
   if (rateLimitResponse) {
     return rateLimitResponse
   }
@@ -51,12 +56,6 @@ export async function POST(req: NextRequest) {
 
     if (!allowedPriceIds.has(priceId)) {
       return NextResponse.json({ error: 'Invalid price ID' }, { status: 400 })
-    }
-
-    // Get authenticated user
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const user = await currentUser()

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { clerkClient } from '@clerk/nextjs/server'
 import { requireAdmin } from '@/lib/auth/admin'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { MemberAvatar } from '@/components/ui/member-avatar'
 
 export const dynamic = 'force-dynamic'
 
@@ -214,15 +215,7 @@ export default async function AdminMembersPage() {
             key={m.user_id}
             className="bg-[#1a1a1f] border border-white/[0.08] rounded-[14px] p-4 flex items-center gap-3"
           >
-            {m.avatar_url ? (
-              <img src={m.avatar_url} alt={m.display_name} className="w-10 h-10 rounded-full object-cover shrink-0" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-[#2a2a30] flex items-center justify-center shrink-0">
-                <span className="text-[11px] font-(family-name:--font-dm-mono) text-white/50 uppercase">
-                  {m.display_name.slice(0, 2)}
-                </span>
-              </div>
-            )}
+            <MemberAvatar name={m.display_name} url={m.avatar_url} seed={m.username ?? m.user_id} size={40} />
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-medium truncate">{m.display_name}</p>
               <p className="text-[11px] font-(family-name:--font-dm-mono) text-white/40">
