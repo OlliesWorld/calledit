@@ -26,7 +26,6 @@ export function validateData<T>(
 }
 
 // Re-export all validation schemas
-export * from './auth'
 export * from './profile'
 export * from './checkout'
 export * from './marketing'

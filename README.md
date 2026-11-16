@@ -105,6 +105,6 @@ npm run validate-setup   # Validate environment config
 
 ## Deployment
 
-Configured for [Netlify](https://www.netlify.com). Push to main, connect the repo in Netlify, and add environment variables in Site Settings.
+Deployed on [Vercel](https://vercel.com). Push to main and Vercel builds it; environment variables live in Project Settings → Environment Variables.
 
 Update `NEXT_PUBLIC_APP_URL` and Stripe webhook URL to your production domain after deploying.

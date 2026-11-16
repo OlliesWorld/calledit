@@ -32,20 +32,6 @@ export async function getActiveWeek(league: League): Promise<WeekWithQuestions |
   return { ...week, questions: questions ?? [] }
 }
 
-export async function getQuestionsForWeek(weekId: string) {
-  const supabase = createAdminClient()
-  if (!supabase) return []
-
-  const { data, error } = await supabase
-    .from('questions')
-    .select('*')
-    .eq('week_id', weekId)
-    .order('display_order', { ascending: true })
-
-  if (error) return []
-  return data ?? []
-}
-
 export async function getPicksForUser(weekId: string, userId: string): Promise<Pick[]> {
   const supabase = createAdminClient()
   if (!supabase) return []
