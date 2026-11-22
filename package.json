@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "types:generate": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" --schema public > src/types/database.ts",
-    "validate-setup": "node scripts/validate-setup.js"
+    "validate-setup": "node scripts/validate-setup.js",
+    "tokens": "node scripts/build-tokens.mjs",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "visual-diff": "node scripts/visual-diff.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.94.0",
@@ -25,14 +29,25 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@fontsource/bebas-neue": "^5.3.0",
+    "@fontsource/dm-mono": "^5.3.0",
+    "@fontsource/dm-sans": "^5.3.0",
+    "@storybook/nextjs-vite": "^10.6.8",
     "@tailwindcss/postcss": "4.3.5",
+    "@tailwindcss/vite": "^4.3.5",
     "@types/node": "20.19.43",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "dotenv": "17.4.2",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.6",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
+    "puppeteer-core": "^25.18.1",
+    "serve-handler": "^6.1.8",
+    "storybook": "^10.6.8",
     "tailwindcss": "4.3.5",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vite": "^8.3.8"
   }
 }

@@ -34,11 +34,11 @@ export function LeagueSwitcher() {
             aria-current={active ? 'page' : undefined}
             onClick={() => rememberLeague(league)}
             // 44px tall tap target; the visible pill is the inner span
-            className="group inline-flex min-h-11 items-center px-0.5 rounded-[10px] focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-white"
+            className="group inline-flex min-h-11 items-center px-0.5 rounded-field focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-white"
           >
             <span
               className={cn(
-                'px-2.5 py-1.5 rounded-[8px] text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-colors',
+                'px-2.5 py-1.5 rounded-chip text-[10px] font-mono uppercase tracking-widest transition-colors',
                 active
                   ? 'bg-orange text-black font-medium'
                   : 'text-white/50 group-hover:text-white group-hover:bg-white/10',

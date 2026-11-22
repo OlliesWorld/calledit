@@ -43,3 +43,7 @@ next-env.d.ts
 
 # backup of live env while developing against staging
 .env.live.backup
+
+storybook-static
+storybook-before
+shots/*/*.diff.png

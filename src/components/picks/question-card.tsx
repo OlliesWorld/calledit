@@ -22,19 +22,19 @@ export function QuestionCard({ question, pick, weekStatus, onPick, index }: Ques
   return (
     <div
       className={cn(
-        'rounded-[14px] border p-4 space-y-3 animate-fade-up',
+        'rounded-card border p-4 space-y-3 animate-fade-up',
         isScored && pick?.is_correct === true
           ? 'border-lime/30 bg-lime/5'
           : isScored && pick?.is_correct === false
           ? 'border-coral/30 bg-coral/5'
-          : 'border-white/[0.08] bg-[#1a1a1f]'
+          : 'border-line bg-surface2'
       )}
       style={{ animationDelay: `${index * 60}ms` }}
     >
       {/* Result badge */}
       {showResult && (
         <div className={cn(
-          'inline-flex items-center gap-1.5 text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest px-2 py-1 rounded-full',
+          'inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-full',
           isCorrect ? 'bg-lime/15 text-lime' : 'bg-coral/15 text-coral'
         )}>
           {isCorrect ? (
@@ -51,13 +51,13 @@ export function QuestionCard({ question, pick, weekStatus, onPick, index }: Ques
       )}
 
       {/* Question text */}
-      <p className="text-[15px] font-medium text-[#F5F5F0] leading-snug">
+      <p className="text-[15px] font-medium text-ink leading-snug">
         {question.question_text}
       </p>
 
       {/* Flavor text */}
       {question.flavor_text && (
-        <div className="rounded-[10px] bg-violet/10 border border-violet/20 px-3 py-2">
+        <div className="rounded-field bg-violet/10 border border-violet/20 px-3 py-2">
           <p className="text-[13px] text-white/75 leading-relaxed italic">
             {question.flavor_text}
           </p>
@@ -77,11 +77,11 @@ export function QuestionCard({ question, pick, weekStatus, onPick, index }: Ques
               onClick={() => !isLocked && onPick?.(question.id, value)}
               disabled={isLocked}
               className={cn(
-                'rounded-[14px] py-3 font-(family-name:--font-bebas) text-2xl tracking-wide transition-all',
+                'rounded-card py-3 font-display text-2xl tracking-wide transition-all',
                 isSelected && !isScored
                   ? label === 'YES'
-                    ? 'bg-orange text-black shadow-[0_0_20px_rgba(255,95,31,0.4)] scale-[1.02]'
-                    : 'bg-coral text-black shadow-[0_0_20px_rgba(255,59,110,0.4)] scale-[1.02]'
+                    ? 'bg-orange text-black shadow-glow-orange scale-[1.02]'
+                    : 'bg-coral text-black shadow-glow-coral scale-[1.02]'
                   : isSelected && isScored && isCorrect
                   ? 'bg-lime text-black'
                   : isSelected && isScored && !isCorrect
@@ -89,8 +89,8 @@ export function QuestionCard({ question, pick, weekStatus, onPick, index }: Ques
                   : showCorrectAnswer && isScored
                   ? 'bg-lime/20 text-lime border border-lime/40'
                   : isLocked
-                  ? 'bg-[#222228] text-white/30 cursor-not-allowed'
-                  : 'bg-[#222228] text-[#F5F5F0]/70 hover:bg-[#2a2a30] hover:text-[#F5F5F0]'
+                  ? 'bg-surface3 text-white/30 cursor-not-allowed'
+                  : 'bg-surface3 text-ink/70 hover:bg-surface4 hover:text-ink'
               )}
             >
               {label}

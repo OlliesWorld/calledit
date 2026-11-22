@@ -1,0 +1,725 @@
+diff --git a/.gitignore b/.gitignore
+index 21ecae8..635c147 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -43,3 +43,7 @@ next-env.d.ts
+ 
+ # backup of live env while developing against staging
+ .env.live.backup
++
++storybook-static
++storybook-before
++shots/*/*.diff.png
+diff --git a/.storybook/main.ts b/.storybook/main.ts
+new file mode 100644
+index 0000000..783254e
+--- /dev/null
++++ b/.storybook/main.ts
+@@ -0,0 +1,9 @@
++import type { StorybookConfig } from '@storybook/nextjs-vite'
++
++const config: StorybookConfig = {
++  stories: ['../src/**/*.stories.@(ts|tsx)'],
++  framework: { name: '@storybook/nextjs-vite', options: {} },
++  staticDirs: ['../public'],
++}
++
++export default config
+diff --git a/.storybook/preview-head.html b/.storybook/preview-head.html
+new file mode 100644
+index 0000000..7e39162
+--- /dev/null
++++ b/.storybook/preview-head.html
+@@ -0,0 +1,8 @@
++<script>
++  // Some vendored Next.js modules reference Node's __dirname. Define it so they load in the browser.
++  window.__dirname = '/'
++</script>
++<style>
++  /* next/font normally sets these variables on <html>. Fonts themselves come from @fontsource in preview.ts. */
++  :root { --font-bebas: "Bebas Neue"; --font-dm-sans: "DM Sans"; --font-dm-mono: "DM Mono"; }
++</style>
+diff --git a/.storybook/preview.ts b/.storybook/preview.ts
+new file mode 100644
+index 0000000..a740d8a
+--- /dev/null
++++ b/.storybook/preview.ts
+@@ -0,0 +1,27 @@
++import type { Preview } from '@storybook/nextjs-vite'
++import '@fontsource/bebas-neue/400.css'
++import '@fontsource/dm-sans/400.css'
++import '@fontsource/dm-sans/500.css'
++import '@fontsource/dm-sans/700.css'
++import '@fontsource/dm-sans/400-italic.css'
++import '@fontsource/dm-mono/400.css'
++import '@fontsource/dm-mono/500.css'
++import '../src/styles/globals.css'
++
++// Called-It is dark-only, so the canvas is a fixed hex (kept independent of tokens so before/after diffs are fair).
++const preview: Preview = {
++  parameters: {
++    layout: 'centered',
++    backgrounds: { disable: true },
++    nextjs: { appDirectory: true },
++    controls: { matchers: { color: /(background|color)$/i } },
++  },
++  decorators: [
++    (Story) => {
++      document.body.style.background = '#0A0A0B'
++      return Story()
++    },
++  ],
++}
++
++export default preview
+diff --git a/design-tokens/tokens.json b/design-tokens/tokens.json
+new file mode 100644
+index 0000000..517ced3
+--- /dev/null
++++ b/design-tokens/tokens.json
+@@ -0,0 +1,41 @@
++{
++  "color": {
++    "$type": "color",
++    "canvas": { "$value": "#0A0A0B", "$description": "Page background" },
++    "surface": { "$value": "#111114", "$description": "Header and nav surface" },
++    "surface2": { "$value": "#1A1A1F", "$description": "Card surface" },
++    "surface3": { "$value": "#222228", "$description": "Field and button surface" },
++    "surface4": { "$value": "#2A2A30", "$description": "Hover surface" },
++    "ink": { "$value": "#F5F5F0", "$description": "Primary text" },
++    "ink-muted": { "$value": "rgba(245, 245, 240, 0.45)", "$description": "Secondary text" },
++    "line": { "$value": "rgba(255, 255, 255, 0.08)", "$description": "Subtle border" },
++    "orange": { "$value": "#FF5F1F", "$description": "Brand primary, YES pick" },
++    "coral": { "$value": "#FF3B6E", "$description": "NO pick, wrong answer, destructive" },
++    "lime": { "$value": "#B8FF3A", "$description": "Correct answer" },
++    "violet": { "$value": "#8B5CF6", "$description": "Flavor text and tiebreaker" },
++    "gold": { "$value": "#FFD166", "$description": "Highlight" }
++  },
++  "radius": {
++    "$type": "borderRadius",
++    "card": { "$value": "14", "$description": "Cards and pick buttons" },
++    "field": { "$value": "10", "$description": "Inputs and callouts" },
++    "chip": { "$value": "8", "$description": "League pills" }
++  },
++  "shadow": {
++    "$type": "shadow",
++    "glow-orange": {
++      "$value": { "color": "rgba(255, 95, 31, 0.4)", "offsetX": "0", "offsetY": "0", "blur": "20", "spread": "0" },
++      "$description": "Selected YES pick glow"
++    },
++    "glow-coral": {
++      "$value": { "color": "rgba(255, 59, 110, 0.4)", "offsetX": "0", "offsetY": "0", "blur": "20", "spread": "0" },
++      "$description": "Selected NO pick glow"
++    }
++  },
++  "font": {
++    "$type": "fontFamilies",
++    "display": { "$value": "Bebas Neue", "$description": "Headlines and pick buttons" },
++    "sans": { "$value": "DM Sans", "$description": "Body text" },
++    "mono": { "$value": "DM Mono", "$description": "Labels and badges" }
++  }
++}
+diff --git a/package.json b/package.json
+index 8546a3a..3ff08e3 100644
+--- a/package.json
++++ b/package.json
+@@ -8,7 +8,11 @@
+     "start": "next start",
+     "lint": "eslint",
+     "types:generate": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" --schema public > src/types/database.ts",
+-    "validate-setup": "node scripts/validate-setup.js"
++    "validate-setup": "node scripts/validate-setup.js",
++    "tokens": "node scripts/build-tokens.mjs",
++    "storybook": "storybook dev -p 6006",
++    "build-storybook": "storybook build",
++    "visual-diff": "node scripts/visual-diff.mjs"
+   },
+   "dependencies": {
+     "@anthropic-ai/sdk": "0.94.0",
+@@ -25,14 +29,25 @@
+     "zod": "4.6.7"
+   },
+   "devDependencies": {
++    "@fontsource/bebas-neue": "^5.3.0",
++    "@fontsource/dm-mono": "^5.3.0",
++    "@fontsource/dm-sans": "^5.3.0",
++    "@storybook/nextjs-vite": "^10.6.8",
+     "@tailwindcss/postcss": "4.3.5",
++    "@tailwindcss/vite": "^4.3.5",
+     "@types/node": "20.19.43",
+     "@types/react": "19.3.0",
+     "@types/react-dom": "19.3.0",
+     "dotenv": "17.4.2",
+     "eslint": "9.39.5",
+     "eslint-config-next": "16.4.6",
++    "pixelmatch": "^8.0.0",
++    "pngjs": "^7.0.0",
++    "puppeteer-core": "^25.18.1",
++    "serve-handler": "^6.1.8",
++    "storybook": "^10.6.8",
+     "tailwindcss": "4.3.5",
+-    "typescript": "5.9.3"
++    "typescript": "5.9.3",
++    "vite": "^8.3.8"
+   }
+ }
+diff --git a/scripts/build-tokens.mjs b/scripts/build-tokens.mjs
+new file mode 100644
+index 0000000..38ecfe2
+--- /dev/null
++++ b/scripts/build-tokens.mjs
+@@ -0,0 +1,80 @@
++// Reads design-tokens/tokens.json (W3C DTCG format, as exported by Penpot)
++// and writes src/styles/tokens.generated.css for Tailwind v4's @theme.
++// Run: npm run tokens
++import { readFileSync, writeFileSync } from 'node:fs'
++import { dirname, resolve } from 'node:path'
++import { fileURLToPath } from 'node:url'
++
++const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
++const src = resolve(root, 'design-tokens/tokens.json')
++const out = resolve(root, 'src/styles/tokens.generated.css')
++
++const tree = JSON.parse(readFileSync(src, 'utf8'))
++
++// Flatten the token tree into [path[], token] pairs, carrying $type down.
++function walk(node, path = [], inheritedType) {
++  const rows = []
++  const type = node.$type ?? inheritedType
++  for (const [key, value] of Object.entries(node)) {
++    if (key.startsWith('$')) continue
++    if (value && typeof value === 'object' && '$value' in value) {
++      rows.push([[...path, key], { ...value, $type: value.$type ?? type }])
++    } else if (value && typeof value === 'object') {
++      rows.push(...walk(value, [...path, key], type))
++    }
++  }
++  return rows
++}
++
++// Penpot and Tokens Studio use slightly different $type names, so accept both.
++const TYPE_GROUP = {
++  color: 'color',
++  borderradius: 'radius',
++  dimension: 'radius',
++  shadow: 'shadow',
++  boxshadow: 'shadow',
++  fontfamily: 'font',
++  fontfamilies: 'font',
++}
++
++const px = (v) => (/^-?\d+(\.\d+)?$/.test(String(v)) ? `${v}px` : String(v))
++const shadowCss = (s) => `${px(s.offsetX)} ${px(s.offsetY)} ${px(s.blur)} ${px(s.spread)} ${s.color}`
++
++const lines = []
++const fontLines = []
++for (const [path, token] of walk(tree)) {
++  const group = TYPE_GROUP[String(token.$type).toLowerCase()]
++  if (!group) {
++    console.warn(`skip ${path.join('.')}: unknown $type "${token.$type}"`)
++    continue
++  }
++  const name = path.slice(1).join('-')
++  const v = token.$value
++  if (group === 'color') lines.push(`  --color-${name}: ${v};`)
++  if (group === 'radius') lines.push(`  --radius-${name}: ${px(v)};`)
++  if (group === 'shadow') {
++    const list = Array.isArray(v) ? v : [v]
++    lines.push(`  --shadow-${name}: ${list.map(shadowCss).join(', ')};`)
++  }
++  if (group === 'font') {
++    // Prefer the next/font variable when present, fall back to the family name
++    // (Storybook has no next/font).
++    const generic = name === 'mono' ? 'monospace' : 'sans-serif'
++    fontLines.push(`  --font-${name}: var(--font-${{ display: 'bebas', sans: 'dm-sans', mono: 'dm-mono' }[name] ?? name}, "${v}"), ${generic};`)
++  }
++}
++
++const css = `/* GENERATED by scripts/build-tokens.mjs from design-tokens/tokens.json.
++   Do not edit by hand. Change the tokens in Penpot, export, then run \`npm run tokens\`. */
++@theme {
++${lines.join('\n')}
++}
++
++/* inline: next/font sets its variables below :root, so the value must be
++   substituted into each utility instead of resolved at :root. */
++@theme inline {
++${fontLines.join('\n')}
++}
++`
++writeFileSync(out, css)
++console.log(`wrote ${out} (${lines.length + fontLines.length} tokens)`)
+diff --git a/scripts/visual-diff.mjs b/scripts/visual-diff.mjs
+new file mode 100644
+index 0000000..6e801e8
+--- /dev/null
++++ b/scripts/visual-diff.mjs
+@@ -0,0 +1,67 @@
++// Screenshots every story in a built Storybook and, if a baseline folder is
++// given, reports the pixel difference per story.
++//
++//   npm run build-storybook
++//   node scripts/visual-diff.mjs --static storybook-static --out shots/after --baseline shots/before
++//
++// The baseline can be the previous build, or exports from Penpot named by story
++// id (for example picks-questioncard--open.png) to compare design against build.
++import { createServer } from 'node:http'
++import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
++import { resolve } from 'node:path'
++import handler from 'serve-handler'
++import puppeteer from 'puppeteer-core'
++import pixelmatch from 'pixelmatch'
++import { PNG } from 'pngjs'
++
++const args = Object.fromEntries(
++  process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith('--') ? [...acc, [a.slice(2), all[i + 1]]] : acc), [])
++)
++const staticDir = resolve(args.static ?? 'storybook-static')
++const outDir = resolve(args.out ?? 'shots/current')
++const baselineDir = args.baseline ? resolve(args.baseline) : null
++const chrome = args.chrome ?? process.env.CHROME_PATH ?? '/usr/bin/google-chrome'
++mkdirSync(outDir, { recursive: true })
++
++const index = JSON.parse(readFileSync(resolve(staticDir, 'index.json'), 'utf8'))
++const stories = Object.values(index.entries).filter((e) => e.type === 'story')
++
++const server = createServer((req, res) => handler(req, res, { public: staticDir, cleanUrls: false }))
++await new Promise((r) => server.listen(0, r))
++const base = `http://localhost:${server.address().port}`
++
++const browser = await puppeteer.launch({ executablePath: chrome, args: ['--no-sandbox'] })
++const page = await browser.newPage()
++await page.setViewport({ width: 600, height: 500, deviceScaleFactor: 2 })
++
++const rows = []
++for (const story of stories) {
++  await page.goto(`${base}/iframe.html?id=${story.id}&viewMode=story`, { waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {})
++  await page.evaluate(() => document.fonts.ready)
++  // Let the fade-up animation finish so frames are comparable.
++  await new Promise((r) => setTimeout(r, 900))
++  const el = await page.$('#storybook-root')
++  const file = resolve(outDir, `${story.id}.png`)
++  await el.screenshot({ path: file })
++
++  let diffPct = null
++  const basePng = baselineDir && resolve(baselineDir, `${story.id}.png`)
++  if (basePng && existsSync(basePng)) {
++    const a = PNG.sync.read(readFileSync(basePng))
++    const b = PNG.sync.read(readFileSync(file))
++    if (a.width !== b.width || a.height !== b.height) {
++      diffPct = 100
++    } else {
++      const diff = new PNG({ width: a.width, height: a.height })
++      const n = pixelmatch(a.data, b.data, diff.data, a.width, a.height, { threshold: 0.1 })
++      diffPct = +((n / (a.width * a.height)) * 100).toFixed(4)
++      if (n > 0) writeFileSync(resolve(outDir, `${story.id}.diff.png`), PNG.sync.write(diff))
++    }
++  }
++  rows.push({ story: story.id, diffPct })
++}
++await browser.close()
++server.close()
++
++writeFileSync(resolve(outDir, 'report.json'), JSON.stringify(rows, null, 2))
++console.table(rows)
+diff --git a/src/components/league/league-switcher.stories.tsx b/src/components/league/league-switcher.stories.tsx
+new file mode 100644
+index 0000000..6cbb1b3
+--- /dev/null
++++ b/src/components/league/league-switcher.stories.tsx
+@@ -0,0 +1,27 @@
++import type { Meta, StoryObj } from '@storybook/nextjs-vite'
++import { LeagueSwitcher } from './league-switcher'
++
++const meta = {
++  title: 'League/LeagueSwitcher',
++  component: LeagueSwitcher,
++  decorators: [
++    (Story) => (
++      <div className="px-5 py-2" style={{ background: "#111114", borderRadius: 10 }}>
++        <Story />
++      </div>
++    ),
++  ],
++} satisfies Meta<typeof LeagueSwitcher>
++
++export default meta
++type Story = StoryObj<typeof meta>
++
++export const WnbaActive: Story = {
++  parameters: { nextjs: { navigation: { pathname: '/wnba' } } },
++}
++export const UnrivaledActive: Story = {
++  parameters: { nextjs: { navigation: { pathname: '/unrivaled' } } },
++}
++export const OnLeaderboard: Story = {
++  parameters: { nextjs: { navigation: { pathname: '/unrivaled/leaderboard' } } },
++}
+diff --git a/src/components/league/league-switcher.tsx b/src/components/league/league-switcher.tsx
+index ce00b27..f131eeb 100644
+--- a/src/components/league/league-switcher.tsx
++++ b/src/components/league/league-switcher.tsx
+@@ -34,11 +34,11 @@ export function LeagueSwitcher() {
+             aria-current={active ? 'page' : undefined}
+             onClick={() => rememberLeague(league)}
+             // 44px tall tap target; the visible pill is the inner span
+-            className="group inline-flex min-h-11 items-center px-0.5 rounded-[10px] focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-white"
++            className="group inline-flex min-h-11 items-center px-0.5 rounded-field focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-white"
+           >
+             <span
+               className={cn(
+-                'px-2.5 py-1.5 rounded-[8px] text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest transition-colors',
++                'px-2.5 py-1.5 rounded-chip text-[10px] font-mono uppercase tracking-widest transition-colors',
+                 active
+                   ? 'bg-orange text-black font-medium'
+                   : 'text-white/50 group-hover:text-white group-hover:bg-white/10',
+diff --git a/src/components/picks/question-card.stories.tsx b/src/components/picks/question-card.stories.tsx
+new file mode 100644
+index 0000000..0a28e87
+--- /dev/null
++++ b/src/components/picks/question-card.stories.tsx
+@@ -0,0 +1,49 @@
++import type { Meta, StoryObj } from '@storybook/nextjs-vite'
++import { QuestionCard } from './question-card'
++import type { Question, Pick } from '@/types/calledit'
++
++const question: Question = {
++  id: 'q1',
++  week_id: 'w1',
++  question_text: 'Will the Aces score 90 or more points on Friday?',
++  flavor_text: 'They hit 90 in four of their last five home games.',
++  question_type: 'pick',
++  correct_answer: true,
++  tiebreaker_answer: null,
++  display_order: 1,
++  player_name: null,
++  game_id: null,
++  created_at: null,
++}
++
++const pick = (answer: boolean, is_correct: boolean | null = null): Pick => ({
++  id: 'p1',
++  user_id: 'u1',
++  question_id: 'q1',
++  week_id: 'w1',
++  answer,
++  tiebreaker_guess: null,
++  is_correct,
++  created_at: null,
++  updated_at: null,
++})
++
++const meta = {
++  title: 'Picks/QuestionCard',
++  component: QuestionCard,
++  args: { question, pick: undefined, weekStatus: 'open', index: 0, onPick: () => {} },
++  decorators: [(Story) => <div className="w-[360px]"><Story /></div>],
++} satisfies Meta<typeof QuestionCard>
++
++export default meta
++type Story = StoryObj<typeof meta>
++
++export const Open: Story = {}
++export const YesSelected: Story = { args: { pick: pick(true) } }
++export const NoSelected: Story = { args: { pick: pick(false) } }
++export const NoFlavorText: Story = { args: { question: { ...question, flavor_text: null } } }
++export const Locked: Story = { args: { weekStatus: 'locked', pick: pick(true) } }
++export const ScoredCorrect: Story = { args: { weekStatus: 'scored', pick: pick(true, true) } }
++export const ScoredWrong: Story = {
++  args: { weekStatus: 'scored', pick: pick(false, false) },
++}
+diff --git a/src/components/picks/question-card.tsx b/src/components/picks/question-card.tsx
+index 4d1ce60..2dd7941 100644
+--- a/src/components/picks/question-card.tsx
++++ b/src/components/picks/question-card.tsx
+@@ -22,19 +22,19 @@ export function QuestionCard({ question, pick, weekStatus, onPick, index }: Ques
+   return (
+     <div
+       className={cn(
+-        'rounded-[14px] border p-4 space-y-3 animate-fade-up',
++        'rounded-card border p-4 space-y-3 animate-fade-up',
+         isScored && pick?.is_correct === true
+           ? 'border-lime/30 bg-lime/5'
+           : isScored && pick?.is_correct === false
+           ? 'border-coral/30 bg-coral/5'
+-          : 'border-white/[0.08] bg-[#1a1a1f]'
++          : 'border-line bg-surface2'
+       )}
+       style={{ animationDelay: `${index * 60}ms` }}
+     >
+       {/* Result badge */}
+       {showResult && (
+         <div className={cn(
+-          'inline-flex items-center gap-1.5 text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest px-2 py-1 rounded-full',
++          'inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-full',
+           isCorrect ? 'bg-lime/15 text-lime' : 'bg-coral/15 text-coral'
+         )}>
+           {isCorrect ? (
+@@ -51,13 +51,13 @@ export function QuestionCard({ question, pick, weekStatus, onPick, index }: Ques
+       )}
+ 
+       {/* Question text */}
+-      <p className="text-[15px] font-medium text-[#F5F5F0] leading-snug">
++      <p className="text-[15px] font-medium text-ink leading-snug">
+         {question.question_text}
+       </p>
+ 
+       {/* Flavor text */}
+       {question.flavor_text && (
+-        <div className="rounded-[10px] bg-violet/10 border border-violet/20 px-3 py-2">
++        <div className="rounded-field bg-violet/10 border border-violet/20 px-3 py-2">
+           <p className="text-[13px] text-white/75 leading-relaxed italic">
+             {question.flavor_text}
+           </p>
+@@ -77,11 +77,11 @@ export function QuestionCard({ question, pick, weekStatus, onPick, index }: Ques
+               onClick={() => !isLocked && onPick?.(question.id, value)}
+               disabled={isLocked}
+               className={cn(
+-                'rounded-[14px] py-3 font-(family-name:--font-bebas) text-2xl tracking-wide transition-all',
++                'rounded-card py-3 font-display text-2xl tracking-wide transition-all',
+                 isSelected && !isScored
+                   ? label === 'YES'
+-                    ? 'bg-orange text-black shadow-[0_0_20px_rgba(255,95,31,0.4)] scale-[1.02]'
+-                    : 'bg-coral text-black shadow-[0_0_20px_rgba(255,59,110,0.4)] scale-[1.02]'
++                    ? 'bg-orange text-black shadow-glow-orange scale-[1.02]'
++                    : 'bg-coral text-black shadow-glow-coral scale-[1.02]'
+                   : isSelected && isScored && isCorrect
+                   ? 'bg-lime text-black'
+                   : isSelected && isScored && !isCorrect
+@@ -89,8 +89,8 @@ export function QuestionCard({ question, pick, weekStatus, onPick, index }: Ques
+                   : showCorrectAnswer && isScored
+                   ? 'bg-lime/20 text-lime border border-lime/40'
+                   : isLocked
+-                  ? 'bg-[#222228] text-white/30 cursor-not-allowed'
+-                  : 'bg-[#222228] text-[#F5F5F0]/70 hover:bg-[#2a2a30] hover:text-[#F5F5F0]'
++                  ? 'bg-surface3 text-white/30 cursor-not-allowed'
++                  : 'bg-surface3 text-ink/70 hover:bg-surface4 hover:text-ink'
+               )}
+             >
+               {label}
+diff --git a/src/components/picks/tiebreaker-input.stories.tsx b/src/components/picks/tiebreaker-input.stories.tsx
+new file mode 100644
+index 0000000..57cb32a
+--- /dev/null
++++ b/src/components/picks/tiebreaker-input.stories.tsx
+@@ -0,0 +1,44 @@
++import type { Meta, StoryObj } from '@storybook/nextjs-vite'
++import { TiebreakerInput } from './tiebreaker-input'
++import type { Question, Pick } from '@/types/calledit'
++
++const question: Question = {
++  id: 'q9',
++  week_id: 'w1',
++  question_text: 'How many total points will be scored in the Liberty game?',
++  flavor_text: 'Closest without going over wins the tie.',
++  question_type: 'tiebreaker',
++  correct_answer: null,
++  tiebreaker_answer: 171,
++  display_order: 9,
++  player_name: null,
++  game_id: null,
++  created_at: null,
++}
++
++const guess = (n: number): Pick => ({
++  id: 'p9',
++  user_id: 'u1',
++  question_id: 'q9',
++  week_id: 'w1',
++  answer: null,
++  tiebreaker_guess: n,
++  is_correct: null,
++  created_at: null,
++  updated_at: null,
++})
++
++const meta = {
++  title: 'Picks/TiebreakerInput',
++  component: TiebreakerInput,
++  args: { question, pick: undefined, weekStatus: 'open', index: 0, onChange: () => {} },
++  decorators: [(Story) => <div className="w-[360px]"><Story /></div>],
++} satisfies Meta<typeof TiebreakerInput>
++
++export default meta
++type Story = StoryObj<typeof meta>
++
++export const Open: Story = {}
++export const WithGuess: Story = { args: { pick: guess(168) } }
++export const Locked: Story = { args: { weekStatus: 'locked', pick: guess(168) } }
++export const ScoredWithAnswer: Story = { args: { weekStatus: 'scored', pick: guess(168) } }
+diff --git a/src/components/picks/tiebreaker-input.tsx b/src/components/picks/tiebreaker-input.tsx
+index 79c573d..9872cf3 100644
+--- a/src/components/picks/tiebreaker-input.tsx
++++ b/src/components/picks/tiebreaker-input.tsx
+@@ -17,16 +17,16 @@ export function TiebreakerInput({ question, pick, weekStatus, onChange, index }:
+ 
+   return (
+     <div
+-      className="rounded-[14px] border border-violet/30 bg-violet/5 p-4 space-y-3 animate-fade-up"
++      className="rounded-card border border-violet/30 bg-violet/5 p-4 space-y-3 animate-fade-up"
+       style={{ animationDelay: `${index * 60}ms` }}
+     >
+       <div className="flex items-center gap-2">
+-        <span className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/70 bg-violet/20 px-2 py-1 rounded-full">
++        <span className="text-[10px] font-mono uppercase tracking-widest text-white/70 bg-violet/20 px-2 py-1 rounded-full">
+           Tiebreaker
+         </span>
+       </div>
+ 
+-      <p className="text-[15px] font-medium text-[#F5F5F0] leading-snug">
++      <p className="text-[15px] font-medium text-ink leading-snug">
+         {question.question_text}
+       </p>
+ 
+@@ -45,19 +45,19 @@ export function TiebreakerInput({ question, pick, weekStatus, onChange, index }:
+           onChange={(e) => onChange?.(question.id, parseFloat(e.target.value))}
+           placeholder="Enter your number"
+           className={cn(
+-            'flex-1 bg-[#222228] border border-white/[0.08] rounded-[10px] px-4 py-3 text-[15px] text-[#F5F5F0] placeholder-white/25 outline-none focus:border-violet/50 transition-colors',
++            'flex-1 bg-surface3 border border-line rounded-field px-4 py-3 text-[15px] text-ink placeholder-white/25 outline-none focus:border-violet/50 transition-colors',
+             isLocked && 'cursor-not-allowed opacity-50'
+           )}
+         />
+         {isScored && question.tiebreaker_answer !== null && (
+           <div className="text-right shrink-0">
+-            <p className="text-[10px] font-(family-name:--font-dm-mono) uppercase tracking-widest text-white/60">Answer</p>
+-            <p className="text-lg font-(family-name:--font-bebas) text-lime">{question.tiebreaker_answer}</p>
++            <p className="text-[10px] font-mono uppercase tracking-widest text-white/60">Answer</p>
++            <p className="text-lg font-display text-lime">{question.tiebreaker_answer}</p>
+           </div>
+         )}
+       </div>
+ 
+-      <p className="text-[11px] font-(family-name:--font-dm-mono) text-white/50 uppercase tracking-wide">
++      <p className="text-[11px] font-mono text-white/50 uppercase tracking-wide">
+         Closest without going over wins ties
+       </p>
+     </div>
+diff --git a/src/styles/globals.css b/src/styles/globals.css
+index ab3f938..92e19fa 100644
+--- a/src/styles/globals.css
++++ b/src/styles/globals.css
+@@ -1,25 +1,13 @@
+ @import "tailwindcss";
++@import "./tokens.generated.css";
+ 
+ @custom-variant dark (&:is(.dark *));
+ 
+ @theme inline {
+   --color-background: var(--background);
+   --color-foreground: var(--foreground);
+-  --font-sans: var(--font-dm-sans);
+-  --font-mono: var(--font-dm-mono);
+-  --font-display: var(--font-bebas);
+-
+-  /* CalledIt brand colors */
+-  --color-orange: #FF5F1F;
+-  --color-coral: #FF3B6E;
+-  --color-lime: #B8FF3A;
+-  --color-violet: #8B5CF6;
+-  --color-gold: #FFD166;
+-
+-  /* Surfaces */
+-  --color-surface: #111114;
+-  --color-surface2: #1a1a1f;
+-  --color-surface3: #222228;
++  /* Brand colors, surfaces, radii, shadows and fonts now come from
++     design-tokens/tokens.json via tokens.generated.css */
+ 
+   /* Shadcn tokens */
+   --color-sidebar-ring: var(--sidebar-ring);
+@@ -54,32 +42,32 @@
+ 
+ :root {
+   --radius: 0.75rem;
+-  --background: #0a0a0b;
+-  --foreground: #F5F5F0;
+-  --card: #1a1a1f;
+-  --card-foreground: #F5F5F0;
+-  --popover: #1a1a1f;
+-  --popover-foreground: #F5F5F0;
+-  --primary: #FF5F1F;
+-  --primary-foreground: #0a0a0b;
+-  --secondary: #222228;
+-  --secondary-foreground: #F5F5F0;
+-  --muted: #222228;
+-  --muted-foreground: rgba(245, 245, 240, 0.45);
+-  --accent: #222228;
+-  --accent-foreground: #F5F5F0;
+-  --destructive: #FF3B6E;
+-  --border: rgba(255, 255, 255, 0.08);
+-  --input: #222228;
+-  --ring: #FF5F1F;
+-  --sidebar: #111114;
+-  --sidebar-foreground: #F5F5F0;
+-  --sidebar-primary: #FF5F1F;
+-  --sidebar-primary-foreground: #0a0a0b;
+-  --sidebar-accent: #222228;
+-  --sidebar-accent-foreground: #F5F5F0;
+-  --sidebar-border: rgba(255, 255, 255, 0.08);
+-  --sidebar-ring: #FF5F1F;
++  --background: var(--color-canvas);
++  --foreground: var(--color-ink);
++  --card: var(--color-surface2);
++  --card-foreground: var(--color-ink);
++  --popover: var(--color-surface2);
++  --popover-foreground: var(--color-ink);
++  --primary: var(--color-orange);
++  --primary-foreground: var(--color-canvas);
++  --secondary: var(--color-surface3);
++  --secondary-foreground: var(--color-ink);
++  --muted: var(--color-surface3);
++  --muted-foreground: var(--color-ink-muted);
++  --accent: var(--color-surface3);
++  --accent-foreground: var(--color-ink);
++  --destructive: var(--color-coral);
++  --border: var(--color-line);
++  --input: var(--color-surface3);
++  --ring: var(--color-orange);
++  --sidebar: var(--color-surface);
++  --sidebar-foreground: var(--color-ink);
++  --sidebar-primary: var(--color-orange);
++  --sidebar-primary-foreground: var(--color-canvas);
++  --sidebar-accent: var(--color-surface3);
++  --sidebar-accent-foreground: var(--color-ink);
++  --sidebar-border: var(--color-line);
++  --sidebar-ring: var(--color-orange);
+ }
+ 
+ @layer base {
+diff --git a/src/styles/tokens.generated.css b/src/styles/tokens.generated.css
+new file mode 100644
+index 0000000..5d27cb2
+--- /dev/null
++++ b/src/styles/tokens.generated.css
+@@ -0,0 +1,30 @@
++/* GENERATED by scripts/build-tokens.mjs from design-tokens/tokens.json.
++   Do not edit by hand. Change the tokens in Penpot, export, then run `npm run tokens`. */
++@theme {
++  --color-canvas: #0A0A0B;
++  --color-surface: #111114;
++  --color-surface2: #1A1A1F;
++  --color-surface3: #222228;
++  --color-surface4: #2A2A30;
++  --color-ink: #F5F5F0;
++  --color-ink-muted: rgba(245, 245, 240, 0.45);
++  --color-line: rgba(255, 255, 255, 0.08);
++  --color-orange: #FF5F1F;
++  --color-coral: #FF3B6E;
++  --color-lime: #B8FF3A;
++  --color-violet: #8B5CF6;
++  --color-gold: #FFD166;
++  --radius-card: 14px;
++  --radius-field: 10px;
++  --radius-chip: 8px;
++  --shadow-glow-orange: 0px 0px 20px 0px rgba(255, 95, 31, 0.4);
++  --shadow-glow-coral: 0px 0px 20px 0px rgba(255, 59, 110, 0.4);
++}
++
++/* inline: next/font sets its variables below :root, so the value must be
++   substituted into each utility instead of resolved at :root. */
++@theme inline {
++  --font-display: var(--font-bebas, "Bebas Neue"), sans-serif;
++  --font-sans: var(--font-dm-sans, "DM Sans"), sans-serif;
++  --font-mono: var(--font-dm-mono, "DM Mono"), monospace;
++}
